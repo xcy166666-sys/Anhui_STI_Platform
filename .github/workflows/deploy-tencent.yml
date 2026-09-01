@@ -1,0 +1,41 @@
+name: Deploy Anhui Demo to Tencent CVM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.CVM_HOST }}
+          username: ${{ secrets.CVM_USER }}
+          key: ${{ secrets.CVM_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.CVM_PORT }}
+          script_stop: true
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            REPO_URL="https://github.com/xcy166666-sys/Anhui_STI_Platform.git"
+            if [ -z "$DEPLOY_PATH" ]; then
+              DEPLOY_PATH="/opt/anhui-sti-platform"
+            fi
+            if [ ! -d "$DEPLOY_PATH/.git" ]; then
+              sudo mkdir -p "$DEPLOY_PATH"
+              sudo chown "$USER:$USER" "$DEPLOY_PATH"
+              git clone "$REPO_URL" "$DEPLOY_PATH"
+            fi
+            cd "$DEPLOY_PATH"
+            git fetch origin main
+            git reset --hard origin/main
+            test -f .env
+            test -f server-data/anhui_data/cleaned/project_vectors_source.jsonl
+            docker compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml ps
