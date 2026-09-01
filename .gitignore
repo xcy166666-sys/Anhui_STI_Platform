@@ -185,6 +185,14 @@ rag_backend/alembic/versions/*.py
 .DS_Store
 Thumbs.db
 
+# Anhui demo local datasets, conversation state, and browser artifacts
+anhui_data/chat_state.json
+anhui_data/cleaned/*.jsonl
+anhui_data/cleaned/*.csv
+anhui_frontend/*-preview*.png
+anhui_frontend/verification.png
+anhui_frontend/assets/swan-lake-candidate-*.jpg
+
 # ==========================
 # 前端构建产物
 # ==========================

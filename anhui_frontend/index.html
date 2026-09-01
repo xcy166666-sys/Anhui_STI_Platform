@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>安徽科创项目推荐助手</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --panel: rgba(255, 255, 255, 0.96);
+        --text: #10213a;
+        --muted: #6f7f95;
+        --line: #dce4ef;
+        --accent: #1f6fb2;
+        --accent-2: #146a63;
+        --accent-soft: #e8f3ff;
+        --chip: #e7f5f1;
+        --shadow: 0 18px 60px rgba(28, 47, 77, 0.12);
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--text); background: var(--bg); }
+      button, textarea, input { font: inherit; }
+      button { cursor: pointer; }
+      a { color: inherit; text-decoration: none; }
+      .page { min-height: 100vh; display: grid; grid-template-rows: auto auto 1fr; }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 30px 34px 24px;
+        background:
+          radial-gradient(circle at 10% 12%, rgba(31, 111, 178, 0.18), transparent 22%),
+          radial-gradient(circle at 88% 8%, rgba(20, 106, 99, 0.12), transparent 18%),
+          linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border-bottom: 1px solid #e4ebf4;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -18px -40px auto;
+        width: 280px;
+        height: 160px;
+        border-radius: 48px;
+        background:
+          radial-gradient(circle at 22% 28%, rgba(255,255,255,0.7), transparent 18%),
+          linear-gradient(135deg, rgba(31,111,178,0.12), rgba(20,106,99,0.1));
+        transform: rotate(-8deg);
+        pointer-events: none;
+      }
+      .hero-top { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; position: relative; z-index: 1; }
+      .brand h1 { margin: 0; font-size: clamp(28px, 3vw, 46px); line-height: 1.08; letter-spacing: 0; }
+      .brand p { margin: 10px 0 0; max-width: 860px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+      .hero-stats { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+      .stat {
+        min-width: 156px;
+        padding: 14px 16px;
+        border: 1px solid #dce6f1;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.82);
+        box-shadow: 0 10px 24px rgba(34, 56, 90, 0.06);
+      }
+      .stat strong { display: block; font-size: 18px; color: #143255; }
+      .stat span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+      .module-row {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+      .module {
+        min-height: 92px;
+        padding: 16px 18px;
+        border: 1px solid #dde6f0;
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 12px 30px rgba(24, 51, 84, 0.06);
+      }
+      .module .label { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: 12px; font-weight: 700; }
+      .module h3 { margin: 10px 0 6px; font-size: 17px; line-height: 1.25; }
+      .module p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .search-bar {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: stretch;
+        position: relative;
+        z-index: 1;
+      }
+      .search-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border: 1px solid #cad7e5;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.95);
+        box-shadow: 0 10px 28px rgba(34, 56, 90, 0.05);
+      }
+      .search-box input {
+        flex: 1;
+        border: 0;
+        outline: 0;
+        color: #17324f;
+        background: transparent;
+      }
+      .search-box button {
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 8px;
+        color: #fff;
+        background: var(--accent);
+      }
+      .hot-search {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        position: relative;
+        z-index: 1;
+      }
+      .hot-search span { color: var(--muted); font-size: 12px; margin-right: 4px; }
+      .hot-search button {
+        padding: 7px 10px;
+        border: 1px solid #d4dee9;
+        border-radius: 4px;
+        color: #38526f;
+        background: #fff;
+      }
+      .hot-search button:hover { border-color: #8bb6d9; color: var(--accent); }
+      .workspace {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr) 296px;
+        gap: 16px;
+        padding: 16px 16px 20px;
+      }
+      .rail, .context, .chat {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+      .rail { padding: 18px 14px; }
+      .rail h2, .context h2 { margin: 0 0 12px; font-size: 15px; }
+      .rail-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 12px;
+        border-radius: 6px;
+        color: #36506f;
+        font-size: 13px;
+      }
+      .rail-item.active { color: #143255; background: #eef5ff; }
+      .rail-note { margin-top: 10px; padding: 12px; border-radius: 6px; color: #5d748d; font-size: 12px; line-height: 1.7; background: #f8fbfd; }
+      .chat { display: flex; flex-direction: column; min-height: 0; }
+      .chat-head {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e6ecf4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .chat-head strong { font-size: 15px; }
+      .status { color: var(--muted); font-size: 12px; }
+      .status::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: #42b883;
+      }
+      .stream {
+        flex: 1;
+        min-height: 460px;
+        padding: 20px;
+        overflow: auto;
+      }
+      .empty {
+        max-width: 560px;
+        margin: 12vh auto 0;
+        text-align: center;
+      }
+      .empty h2 { margin: 0; font-size: 28px; line-height: 1.18; }
+      .empty p { margin: 12px auto 0; max-width: 580px; color: var(--muted); line-height: 1.8; }
+      .messages { display: grid; gap: 14px; }
+      .msg { display: flex; gap: 12px; align-items: flex-start; max-width: 860px; margin: 0 auto; }
+      .msg.user { justify-content: flex-end; }
+      .avatar {
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .msg.user .avatar { order: 2; background: #169080; color: #fff; }
+      .bubble {
+        max-width: min(750px, 88%);
+        padding: 12px 14px;
+        border: 1px solid #dfe7f0;
+        border-radius: 6px 12px 12px 12px;
+        background: #fbfdff;
+        line-height: 1.8;
+        white-space: pre-wrap;
+      }
+      .msg.user .bubble {
+        border-color: #d8ece6;
+        border-radius: 12px 6px 12px 12px;
+        background: #eaf7f3;
+      }
+      .answer-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .answer-tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        border-radius: 4px;
+        background: #eef6ff;
+        color: #316497;
+      }
+      .result-list { display: grid; gap: 10px; margin-top: 14px; }
+      .result {
+        padding: 14px 15px;
+        border: 1px solid #dbe4ee;
+        border-left: 3px solid var(--accent-2);
+        border-radius: 6px;
+        background: #fff;
+      }
+      .result h3 { margin: 0 0 6px; font-size: 15px; line-height: 1.35; }
+      .result .meta { color: #4e6885; font-size: 12px; line-height: 1.7; }
+      .result .summary { margin-top: 8px; color: #5d6f82; font-size: 13px; line-height: 1.7; }
+      .result a { display: inline-block; margin-top: 8px; color: var(--accent); font-size: 12px; }
+      .composer {
+        padding: 14px 20px 18px;
+        border-top: 1px solid #e6ecf4;
+        background: #fff;
+      }
+      .composer-box {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid #ccd7e3;
+        border-radius: 8px;
+        box-shadow: 0 8px 22px rgba(34, 56, 90, 0.06);
+      }
+      textarea {
+        flex: 1;
+        min-height: 40px;
+        max-height: 150px;
+        border: 0;
+        outline: 0;
+        resize: vertical;
+        color: #17324f;
+        background: transparent;
+      }
+      .send {
+        width: 42px;
+        height: 42px;
+        border: 0;
+        border-radius: 8px;
+        color: #fff;
+        background: var(--accent);
+      }
+      .send:disabled { opacity: .55; cursor: wait; }
+      .composer-note { margin-top: 8px; color: #9aa6b5; font-size: 11px; text-align: center; }
+      .context { padding: 18px 16px; }
+      .context-block { padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #e6edf5; }
+      .context-label { margin-bottom: 8px; color: #8a98a9; font-size: 11px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip { padding: 4px 7px; border-radius: 4px; color: #2f6b67; background: #e5f3ef; font-size: 11px; }
+      .trace { display: grid; gap: 6px; }
+      .trace-row { display: flex; justify-content: space-between; gap: 8px; color: #617084; font-size: 11px; }
+      .trace-row strong { color: #31587b; }
+      .empty-context { color: #9aa6b5; font-size: 12px; line-height: 1.7; }
+      .session-pill { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; color: #294b77; background: #eef5ff; font-size: 12px; }
+      @media (max-width: 1100px) {
+        .workspace { grid-template-columns: 220px minmax(0, 1fr); }
+        .context { display: none; }
+        .module-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 720px) {
+        .hero, .workspace { padding-left: 12px; padding-right: 12px; }
+        .hero-top { flex-direction: column; }
+        .hero-stats { justify-content: flex-start; }
+        .workspace { display: block; }
+        .rail { display: none; }
+        .module-row { grid-template-columns: 1fr; }
+        .search-bar { grid-template-columns: 1fr; }
+        .chat { margin-top: 14px; }
+        .empty h2 { font-size: 24px; }
+      }
+
+      /* Keep the conversation usable in the first viewport. */
+      .page { grid-template-rows: auto 1fr; height: 100vh; }
+      .hero {
+        padding: 14px 22px 12px;
+        background: #fff;
+      }
+      .hero-top { align-items: center; }
+      .brand h1 { font-size: 22px; }
+      .brand p { display: none; }
+      .hero-stats { display: none; }
+      .module-row, .hot-search { display: none; }
+      .search-bar { margin-top: 12px; grid-template-columns: minmax(0, 1fr) auto; }
+      .search-box { min-height: 42px; padding: 5px 8px 5px 12px; }
+      .search-box button { width: 34px; height: 32px; }
+      .workspace { min-height: 0; height: 100%; padding: 12px 16px 16px; }
+      .rail, .context, .chat { min-height: 0; }
+      .rail, .context { overflow: auto; }
+      .chat { height: 100%; overflow: hidden; }
+      .stream { min-height: 0; }
+      .chat-actions { display: flex; align-items: center; gap: 10px; }
+      .new-session {
+        border: 1px solid #d7e1eb; border-radius: 5px; padding: 6px 10px;
+        color: #48627e; background: #fff; font-size: 12px;
+      }
+      .new-session:hover { border-color: #7fa9cc; color: var(--accent); }
+      @media (max-width: 720px) {
+        .hero { padding: 12px; }
+        .brand h1 { font-size: 19px; }
+        .search-bar { grid-template-columns: 1fr auto; }
+        .workspace { height: calc(100vh - 112px); padding: 8px 12px 12px; }
+      }
+
+      /* Hefei Swan Lake workspace theme */
+      :root {
+        --bg: #e9efee;
+        --panel: rgba(255, 255, 255, 0.97);
+        --text: #18302f;
+        --muted: #667a78;
+        --line: #d8e2df;
+        --accent: #0d776f;
+        --accent-2: #c79135;
+        --accent-soft: #e5f3f0;
+        --chip: #e2f1ed;
+        --shadow: 0 10px 30px rgba(23, 51, 49, 0.08);
+        font-family: "HarmonyOS Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+      }
+      body {
+        position: relative;
+        background:
+          linear-gradient(rgba(222, 233, 230, .58), rgba(222, 233, 230, .66)),
+          url("/static/assets/hefei-swan-lake.jpg") center / cover fixed no-repeat;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background: url("/static/assets/hefei-swan-lake.jpg") center / cover no-repeat;
+      }
+      .hero {
+        min-height: 154px;
+        padding: 20px 28px 18px;
+        isolation: isolate;
+        border-bottom: 0;
+        background-image:
+          linear-gradient(90deg, rgba(8, 35, 37, .9) 0%, rgba(8, 50, 50, .7) 46%, rgba(8, 42, 43, .28) 100%);
+        background-color: transparent;
+        box-shadow: 0 8px 24px rgba(10, 40, 40, .18);
+      }
+      .hero::after { display: none; }
+      .hero-top { min-height: 58px; align-items: flex-start; }
+      .brand { color: #fff; }
+      .brand-kicker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 7px;
+        color: rgba(255,255,255,.78);
+        font-size: 11px;
+      }
+      .brand-kicker::before {
+        content: "";
+        width: 22px;
+        height: 2px;
+        background: #e5bd6d;
+      }
+      .brand h1 { color: #fff; font-size: 25px; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,.2); }
+      .brand p { display: block; margin-top: 6px; color: rgba(255,255,255,.82); font-size: 13px; line-height: 1.5; }
+      .landmark {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 11px;
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 4px;
+        color: rgba(255,255,255,.9);
+        background: rgba(7, 35, 35, .28);
+        backdrop-filter: blur(8px);
+        font-size: 12px;
+      }
+      .search-bar { margin-top: 15px; gap: 12px; }
+      .search-box {
+        min-height: 48px;
+        padding: 5px 7px 5px 16px;
+        border: 1px solid rgba(255,255,255,.52);
+        background: rgba(255,255,255,.94);
+        box-shadow: 0 8px 30px rgba(4, 25, 26, .2);
+        backdrop-filter: blur(12px);
+      }
+      .search-box input { color: #203b39; }
+      .search-box input, textarea { min-width: 0; }
+      .search-box input::placeholder { color: #728481; }
+      .search-box button, .send {
+        color: #fff;
+        background: var(--accent);
+        transition: transform .18s ease, background .18s ease;
+      }
+      .search-box button:hover, .send:hover { transform: translateY(-1px); background: #095e58; }
+      .session-pill {
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 5px;
+        color: #fff;
+        background: rgba(7, 35, 35, .42);
+        backdrop-filter: blur(8px);
+      }
+      .workspace {
+        grid-template-columns: 210px minmax(0, 1fr) 278px;
+        gap: 12px;
+        padding: 14px 18px 18px;
+        background: transparent;
+      }
+      .rail, .context, .chat {
+        border-color: rgba(190, 205, 201, .85);
+        background: rgba(250, 253, 252, .88);
+        backdrop-filter: blur(16px) saturate(.9);
+        box-shadow: var(--shadow);
+      }
+      .rail, .context { padding: 18px 15px; }
+      .rail h2, .context h2 { color: #213f3c; font-size: 14px; }
+      .rail-item { border-left: 2px solid transparent; border-radius: 4px; color: #526966; }
+      .rail-item.active { border-left-color: var(--accent); color: #0a625c; background: #e6f2ef; font-weight: 700; }
+      .rail-note { border-left: 2px solid #d4a449; border-radius: 2px; background: #f6f8f6; }
+      .chat-head { min-height: 58px; padding: 13px 18px; background: rgba(252,253,253,.92); }
+      .chat-head strong { color: #203e3b; }
+      .status::before { background: #2fb685; box-shadow: 0 0 0 3px rgba(47,182,133,.12); }
+      .new-session { border-color: #cfdbd8; color: #486460; }
+      .stream {
+        padding: 22px 24px;
+        background: rgba(248, 251, 250, .9);
+        backdrop-filter: blur(10px);
+        scrollbar-color: #a7bbb7 transparent;
+      }
+      .empty { margin-top: 10vh; }
+      .empty h2 { color: #1b3c38; font-size: 25px; }
+      .empty p { max-width: 520px; color: #71827f; }
+      .msg { gap: 10px; max-width: 920px; animation: message-in .22s ease-out both; }
+      @keyframes message-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      .avatar { border-radius: 5px; background: #176f69; box-shadow: 0 4px 12px rgba(13,119,111,.16); }
+      .msg.user .avatar { background: #b4822d; }
+      .bubble {
+        max-width: min(760px, 82%);
+        padding: 12px 15px;
+        border-color: #dce7e4;
+        border-radius: 4px 10px 10px 10px;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(27, 55, 52, .05);
+        line-height: 1.72;
+      }
+      .msg.user .bubble {
+        border-color: #cfe3de;
+        border-radius: 10px 4px 10px 10px;
+        color: #21413d;
+        background: #e3f1ed;
+        box-shadow: none;
+      }
+      .result { border-color: #d7e3df; border-left-color: #c18a2d; background: #fcfdfd; }
+      .answer-tag { color: #356b64; background: #e8f3f0; }
+      .composer { padding: 12px 18px 15px; background: #fff; }
+      .composer-box { border-color: #c8d7d3; box-shadow: 0 5px 18px rgba(21, 56, 52, .06); }
+      .composer-box:focus-within { border-color: #6b9f99; box-shadow: 0 0 0 3px rgba(13,119,111,.08); }
+      .context-block { border-bottom-color: #e1e9e7; }
+      .trace-row strong { color: #29635d; }
+      .chip { color: #28645d; background: #e1f0ec; }
+      @media (max-width: 1100px) {
+        .workspace { grid-template-columns: 190px minmax(0, 1fr); }
+      }
+      @media (max-width: 720px) {
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+        .page, .workspace, .chat { width: 100%; max-width: 100vw; }
+        .hero { min-height: 132px; padding: 14px 12px; background-position: 58% center; }
+        .brand h1 { font-size: 20px; }
+        .brand p, .landmark { display: none; }
+        .search-bar { grid-template-columns: minmax(0, 1fr); margin-top: 12px; }
+        .search-box { width: 100%; min-width: 0; }
+        .session-pill { display: none; }
+        .workspace { height: calc(100vh - 132px); padding: 8px; }
+        .chat-head { padding: 12px 14px; }
+        .chat-head .status { display: none; }
+        .new-session { padding: 5px 8px; }
+        .stream { padding: 16px 10px; }
+        .empty { width: 100%; margin-top: 9vh; padding: 0 8px; }
+        .empty h2 { font-size: 21px; overflow-wrap: anywhere; }
+        .empty p { font-size: 14px; }
+        .bubble { max-width: 88%; }
+        .composer { padding: 10px; }
+        .composer-box { width: 100%; min-width: 0; }
+        .composer-note { white-space: normal; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-top">
+          <div class="brand">
+            <div class="brand-kicker">HEFEI SCI-TECH CONNECT</div>
+            <h1>安徽科创项目推荐助手</h1>
+            <p>让技术需求与安徽创新成果，在对话中高效相遇。</p>
+          </div>
+          <span class="landmark">合肥 · 天鹅湖</span>
+          <div class="hero-stats">
+            <div class="stat"><strong id="projectCount">11,997</strong><span>条项目数据</span></div>
+            <div class="stat"><strong id="agentCount">7</strong><span>Agents</span></div>
+            <div class="stat"><strong id="retrievalLabel">就绪</strong><span>检索状态</span></div>
+          </div>
+        </div>
+        <div class="module-row">
+          <div class="module">
+            <div class="label">供需对接</div>
+            <h3>项目与需求精准匹配</h3>
+            <p>围绕产业、技术、阶段和合作方式，快速找到可对接项目。</p>
+          </div>
+          <div class="module">
+            <div class="label">AI基础资源</div>
+            <h3>百炼大模型 + pgvector</h3>
+            <p>对话、意图、向量检索和推荐说明分层处理。</p>
+          </div>
+          <div class="module">
+            <div class="label">政务公开</div>
+            <h3>来源、证据与追溯</h3>
+            <p>结果保留来源链接和原始字段，便于解释与复核。</p>
+          </div>
+          <div class="module">
+            <div class="label">需求大厅</div>
+            <h3>热词搜索与任务追问</h3>
+            <p>简单寒暄不查库，需求明确后才进入推荐。</p>
+          </div>
+        </div>
+        <div class="search-bar">
+          <div class="search-box">
+            <input id="query" placeholder="例如：我想找人工智能与软件方向、适合技术合作的中试项目" />
+            <button id="submit" aria-label="发送">↗</button>
+          </div>
+          <div class="session-pill" id="sessionLabel">新对话</div>
+        </div>
+        <div class="hot-search">
+          <span>热门搜索：</span>
+          <button class="hot">人工智能</button>
+          <button class="hot">中试阶段</button>
+          <button class="hot">技术合作</button>
+          <button class="hot">新能源</button>
+          <button class="hot">智能制造</button>
+        </div>
+      </header>
+      <section class="workspace">
+        <aside class="rail">
+          <h2>服务模块</h2>
+          <div class="rail-item active"><span>供需对接</span><span>01</span></div>
+          <div class="rail-item"><span>AI基础资源</span><span>02</span></div>
+          <div class="rail-item"><span>政务公开</span><span>03</span></div>
+          <div class="rail-item"><span>AI评测</span><span>04</span></div>
+          <div class="rail-note">
+            这版保留聊天机器人入口，但首屏信息层级参考同类平台：首页先展示能力模块、热词和搜索入口，再进入具体对话。
+          </div>
+        </aside>
+        <main class="chat">
+          <div class="chat-head">
+            <strong>对话窗口</strong>
+            <div class="chat-actions">
+              <span class="status" id="serviceStatus">系统在线</span>
+              <button class="new-session" id="newSession" type="button">新建对话</button>
+            </div>
+          </div>
+          <div class="stream" id="conversation">
+            <div class="empty" id="welcome">
+              <h2>先说需求，我来帮你找项目</h2>
+              <p>你可以直接告诉我想找什么类型的项目、哪个产业方向、偏好什么阶段，或者想筛掉什么条件。像“你好”这类话只会正常对话，不会直接查库。</p>
+            </div>
+          </div>
+          <div class="composer">
+            <div class="composer-box">
+              <textarea id="input" rows="1" placeholder="输入你的需求，按 Enter 发送，Shift + Enter 换行"></textarea>
+              <button class="send" id="send">↑</button>
+            </div>
+            <div class="composer-note">检索结果会同时展示融合分、传统分、RAG 分和来源证据</div>
+          </div>
+        </main>
+        <aside class="context">
+          <h2>本轮上下文</h2>
+          <div class="context-block">
+            <div class="context-label">检索状态</div>
+            <div id="retrievalState" class="empty-context">尚未开始项目检索</div>
+          </div>
+          <div class="context-block">
+            <div class="context-label">已提取条件</div>
+            <div id="memory" class="chips"><span class="empty-context">暂无条件</span></div>
+          </div>
+          <div class="context-block">
+            <div class="context-label">Agent 轨迹</div>
+            <div id="trace" class="trace"><span class="empty-context">等待对话</span></div>
+          </div>
+        </aside>
+      </section>
+    </div>
+    <script>
+      const conversation = document.querySelector("#conversation");
+      const input = document.querySelector("#input");
+      const send = document.querySelector("#send");
+      const memory = document.querySelector("#memory");
+      const trace = document.querySelector("#trace");
+      const retrievalState = document.querySelector("#retrievalState");
+      const sessionLabel = document.querySelector("#sessionLabel");
+      const retrievalLabel = document.querySelector("#retrievalLabel");
+      let sessionId = localStorage.getItem("ahsti_session_id") || null;
+      let activeRequestController = null;
+      let activeRequestTimer = null;
+      const esc = v => String(v || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[c]));
+
+      const clearRequestState = () => {
+        if (activeRequestTimer) window.clearTimeout(activeRequestTimer);
+        activeRequestTimer = null;
+        activeRequestController = null;
+        send.disabled = false;
+      };
+
+      const renderMessage = (role, text, data) => {
+        document.querySelector("#welcome")?.remove();
+        const wrap = document.createElement("div");
+        wrap.className = `msg ${role}`;
+        const results = data?.results?.length
+          ? `<div class="result-list">${data.results.map(item => `
+              <article class="result">
+                <h3>${esc(item.name)}</h3>
+                <div class="meta">${esc(item.track)} · ${esc(item.technology)} · ${esc(item.stage)}</div>
+                <div class="summary">${esc(item.summary || "暂无项目简介")}</div>
+                <div class="answer-meta">
+                  <span class="answer-tag">融合 ${item.fused_score}</span>
+                  <span class="answer-tag">传统 ${item.traditional_score}</span>
+                  <span class="answer-tag">RAG ${item.rag_score}</span>
+                  <span class="answer-tag">${esc(item.evidence_status || "pass")}</span>
+                </div>
+                ${item.source_url ? `<a href="${esc(item.source_url)}" target="_blank" rel="noreferrer">查看来源 ↗</a>` : ""}
+              </article>`).join("")}</div>`
+          : "";
+        wrap.innerHTML = `
+          <div class="avatar">${role === "user" ? "我" : "科"}</div>
+          <div class="bubble">
+            ${esc(text)}
+            ${results}
+          </div>`;
+        conversation.appendChild(wrap);
+        conversation.scrollTop = conversation.scrollHeight;
+      };
+
+      const renderContext = data => {
+        sessionId = data.session_id;
+        localStorage.setItem("ahsti_session_id", sessionId);
+        sessionLabel.textContent = `会话 ${sessionId}`;
+        retrievalState.textContent =
+          data.retrieval_mode === "pgvector"
+            ? "已完成 pgvector 检索"
+            : data.retrieval_mode === "not_run"
+              ? "本轮未检索项目库"
+              : "本地回退检索";
+        retrievalLabel.textContent =
+          data.retrieval_mode === "pgvector" ? "pgvector" : data.retrieval_mode === "not_run" ? "对话" : "回退";
+        const all = [
+          ...(data.short_term_memory?.industries || []),
+          ...(data.short_term_memory?.technologies || []),
+          ...(data.short_term_memory?.stages || []),
+          ...(data.short_term_memory?.cooperation || []),
+        ];
+        memory.innerHTML = all.length
+          ? all.map(x => `<span class="chip">${esc(x)}</span>`).join("")
+          : '<span class="empty-context">暂无条件</span>';
+        trace.innerHTML = (data.agent_trace || [])
+          .map(x => `<div class="trace-row"><strong>${esc(x.agent)}</strong><span>${esc(x.mode || x.intent || (x.should_retrieve === false ? "等待澄清" : ""))}</span></div>`)
+          .join("");
+      };
+
+      async function submit() {
+        const text = input.value.trim();
+        if (text.length < 2 || activeRequestController) return;
+        renderMessage("user", text);
+        input.value = "";
+        send.disabled = true;
+        activeRequestController = new AbortController();
+        activeRequestTimer = window.setTimeout(() => activeRequestController?.abort(), 30000);
+        try {
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: text, top_k: 5, session_id: sessionId }),
+            signal: activeRequestController.signal,
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "请求失败");
+          renderMessage("assistant", data.answer, data);
+          renderContext(data);
+        } catch (error) {
+          const message = error?.name === "AbortError"
+            ? "请求超时，已自动取消本轮等待。你可以直接重新发一条。"
+            : `暂时无法完成请求：${error.message}`;
+          renderMessage("assistant", message);
+        } finally {
+          clearRequestState();
+          input.focus();
+        }
+      }
+
+      send.addEventListener("click", submit);
+      document.querySelector("#submit")?.addEventListener("click", () => {
+        const text = document.querySelector("#query").value.trim();
+        if (!text) return;
+        input.value = text;
+        submit();
+      });
+      document.querySelector("#query")?.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          document.querySelector("#submit")?.click();
+        }
+      });
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          submit();
+        }
+      });
+      document.querySelectorAll(".hot").forEach(btn => {
+        btn.addEventListener("click", () => {
+          input.value = `我想找${btn.textContent}方向的科创项目`;
+          submit();
+        });
+      });
+      document.querySelector("#newSession")?.addEventListener("click", () => {
+        if (activeRequestController) activeRequestController.abort();
+        sessionId = null;
+        localStorage.removeItem("ahsti_session_id");
+        sessionLabel.textContent = "新对话";
+        conversation.innerHTML = `
+          <div class="empty" id="welcome">
+            <h2>先说需求，我来帮你找项目</h2>
+            <p>你可以直接告诉我想找什么类型的项目、哪个产业方向、偏好什么阶段，或者想筛掉什么条件。像“你好”这类话只会正常对话，不会直接查库。</p>
+          </div>`;
+        document.querySelector("#welcome");
+        memory.innerHTML = '<span class="empty-context">暂无条件</span>';
+        trace.innerHTML = '<span class="empty-context">等待对话</span>';
+        retrievalState.textContent = "尚未开始项目检索";
+        retrievalLabel.textContent = "就绪";
+      });
+      window.addEventListener("beforeunload", () => activeRequestController?.abort());
+      fetch("/healthz")
+        .then(r => r.json())
+        .then(data => {
+          document.querySelector("#projectCount").textContent = data.projects.toLocaleString();
+          document.querySelector("#agentCount").textContent = data.agents.length;
+          document.querySelector("#serviceStatus").textContent = `系统在线 · ${data.mode}`;
+        })
+        .catch(() => {
+          document.querySelector("#serviceStatus").textContent = "服务未连接";
+        });
+    </script>
+  </body>
+  </html>
