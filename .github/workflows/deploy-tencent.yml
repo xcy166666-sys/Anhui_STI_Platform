@@ -12,6 +12,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Upload project to Tencent CVM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.CVM_HOST }}
+          username: ${{ secrets.CVM_USER }}
+          key: ${{ secrets.CVM_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.CVM_PORT }}
+          source: "."
+          target: "/tmp/anhui-sti-platform-upload"
+          overwrite: true
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -22,19 +33,15 @@ jobs:
           script: |
             set -e
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
-            REPO_URL="https://github.com/xcy166666-sys/Anhui_STI_Platform.git"
             if [ -z "$DEPLOY_PATH" ]; then
               DEPLOY_PATH="/opt/anhui-sti-platform"
             fi
-            if [ ! -d "$DEPLOY_PATH/.git" ]; then
-              sudo mkdir -p "$DEPLOY_PATH"
-              sudo chown "$USER:$USER" "$DEPLOY_PATH"
-              git clone "$REPO_URL" "$DEPLOY_PATH"
-            fi
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo chown "$USER:$USER" "$DEPLOY_PATH"
+            cp -a /tmp/anhui-sti-platform-upload/. "$DEPLOY_PATH/"
             cd "$DEPLOY_PATH"
-            git fetch origin main
-            git reset --hard origin/main
             test -f .env
             test -f server-data/anhui_data/cleaned/project_vectors_source.jsonl
             docker compose -f docker-compose.prod.yml up -d --build
             docker compose -f docker-compose.prod.yml ps
+            rm -rf /tmp/anhui-sti-platform-upload
