@@ -38,7 +38,13 @@ jobs:
             fi
             sudo mkdir -p "$DEPLOY_PATH"
             sudo chown "$USER:$USER" "$DEPLOY_PATH"
-            cp -a /tmp/anhui-sti-platform-upload/. "$DEPLOY_PATH/"
+            for item in /tmp/anhui-sti-platform-upload/* /tmp/anhui-sti-platform-upload/.[!.]*; do
+              name="$(basename "$item")"
+              case "$name" in
+                .git|.env|server-data) continue ;;
+              esac
+              cp -a "$item" "$DEPLOY_PATH/"
+            done
             cd "$DEPLOY_PATH"
             test -f .env
             test -f server-data/anhui_data/cleaned/project_vectors_source.jsonl
