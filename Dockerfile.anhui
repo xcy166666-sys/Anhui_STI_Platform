@@ -10,7 +10,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY rag_backend/requirements-anhui.txt /tmp/requirements-anhui.txt
-RUN pip install --no-cache-dir -r /tmp/requirements-anhui.txt
+RUN pip install --no-cache-dir \
+    --index-url https://mirrors.aliyun.com/pypi/simple/ \
+    --retries 5 \
+    --timeout 60 \
+    -r /tmp/requirements-anhui.txt
 
 COPY rag_backend /app/rag_backend
 COPY anhui_frontend /app/anhui_frontend
