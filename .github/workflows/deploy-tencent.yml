@@ -19,7 +19,6 @@ jobs:
           username: ${{ secrets.CVM_USER }}
           key: ${{ secrets.CVM_SSH_PRIVATE_KEY }}
           port: ${{ secrets.CVM_PORT }}
-          script_stop: true
           script: |
             set -e
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
