@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import hashlib
+import hmac
+import secrets
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -99,6 +102,114 @@ class ChatRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=20)
     session_id: str | None = None
     user_id: str = Field(default="demo-user", min_length=1, max_length=128)
+
+
+class UserRegisterRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=50)
+    organization: str = Field(min_length=2, max_length=120)
+    mobile: str = Field(pattern=r"^1\d{10}$")
+    role: str = Field(min_length=2, max_length=30)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class UserLoginRequest(BaseModel):
+    mobile: str = Field(pattern=r"^1\d{10}$")
+    password: str = Field(min_length=8, max_length=128)
+
+
+def password_hash(password: str, salt: str | None = None) -> str:
+    """Return a portable PBKDF2 record without persisting plain passwords."""
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("ascii"), 210_000)
+    return f"pbkdf2_sha256$210000${salt}${digest.hex()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        algorithm, iterations, salt, _ = stored.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        expected = password_hash_with_iterations(password, salt, int(iterations))
+        return hmac.compare_digest(expected, stored)
+    except (TypeError, ValueError):
+        return False
+
+
+def password_hash_with_iterations(password: str, salt: str, iterations: int) -> str:
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("ascii"), iterations)
+    return f"pbkdf2_sha256${iterations}${salt}${digest.hex()}"
+
+
+class UserStore:
+    def __init__(self) -> None:
+        self.engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+
+    def initialize(self) -> None:
+        with self.engine.begin() as connection:
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS anhui_users (
+                    id UUID PRIMARY KEY,
+                    name VARCHAR(50) NOT NULL,
+                    organization VARCHAR(120) NOT NULL,
+                    mobile VARCHAR(11) UNIQUE NOT NULL,
+                    role VARCHAR(30) NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    last_login_at TIMESTAMPTZ
+                )
+            """))
+
+    @staticmethod
+    def public_user(row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": str(row["id"]),
+            "name": row["name"],
+            "org": row["organization"],
+            "mobile": row["mobile"],
+            "role": row["role"],
+        }
+
+    def register(self, request: UserRegisterRequest) -> dict[str, Any]:
+        user_id = uuid.uuid4()
+        try:
+            with self.engine.begin() as connection:
+                row = connection.execute(
+                    text("""
+                        INSERT INTO anhui_users (id, name, organization, mobile, role, password_hash)
+                        VALUES (:id, :name, :organization, :mobile, :role, :password_hash)
+                        RETURNING id, name, organization, mobile, role
+                    """),
+                    {
+                        "id": user_id,
+                        "name": request.name.strip(),
+                        "organization": request.organization.strip(),
+                        "mobile": request.mobile,
+                        "role": request.role.strip(),
+                        "password_hash": password_hash(request.password),
+                    },
+                ).mappings().one()
+        except Exception as exc:
+            if "unique" in str(exc).lower() or "duplicate" in str(exc).lower():
+                raise HTTPException(status_code=409, detail="该手机号已注册，请直接登录") from exc
+            raise
+        return self.public_user(dict(row))
+
+    def login(self, request: UserLoginRequest) -> dict[str, Any]:
+        with self.engine.begin() as connection:
+            row = connection.execute(
+                text("""
+                    SELECT id, name, organization, mobile, role, password_hash
+                    FROM anhui_users WHERE mobile = :mobile
+                """),
+                {"mobile": request.mobile},
+            ).mappings().first()
+            if not row or not verify_password(request.password, row["password_hash"]):
+                raise HTTPException(status_code=401, detail="手机号或密码不正确")
+            connection.execute(
+                text("UPDATE anhui_users SET last_login_at = NOW() WHERE id = :id"),
+                {"id": row["id"]},
+            )
+        return self.public_user(dict(row))
 
 
 class ProjectIndex:
@@ -815,9 +926,15 @@ memory_store = MemoryStore(STATE_FILE)
 rag_client = PgvectorClient()
 chat_client = BailianClient()
 harness = AgentHarness(project_index, memory_store, rag_client, chat_client)
+user_store = UserStore()
 
 app = FastAPI(title="安徽科创项目推荐 Demo")
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+@app.on_event("startup")
+def initialize_application() -> None:
+    user_store.initialize()
 
 
 @app.get("/")
@@ -861,6 +978,16 @@ def chat(request: ChatRequest) -> dict[str, Any]:
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="请输入需求")
     return harness.run(request)
+
+
+@app.post("/api/auth/register", status_code=201)
+def register(request: UserRegisterRequest) -> dict[str, Any]:
+    return {"user": user_store.register(request)}
+
+
+@app.post("/api/auth/login")
+def login(request: UserLoginRequest) -> dict[str, Any]:
+    return {"user": user_store.login(request)}
 
 
 @app.post("/api/recommend")

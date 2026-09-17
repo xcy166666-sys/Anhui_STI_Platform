@@ -7,16 +7,16 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #172033;
-      --muted: #667085;
-      --line: rgba(17, 24, 39, 0.12);
-      --panel: rgba(255, 255, 255, 0.9);
-      --panel-strong: rgba(255, 255, 255, 0.96);
-      --brand: #0f766e;
-      --brand-dark: #115e59;
-      --blue: #2563eb;
-      --gold: #b7791f;
-      --danger: #b91c1c;
+      --ink: #1c2b3a;
+      --muted: #637488;
+      --line: #dbe3ea;
+      --panel: rgba(255, 255, 255, 0.94);
+      --panel-strong: #ffffff;
+      --brand: #0a5b9f;
+      --brand-dark: #074a82;
+      --blue: #1477bb;
+      --gold: #b8862e;
+      --danger: #b42318;
       --ok: #15803d;
       --shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
     }
@@ -28,7 +28,7 @@
       font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--ink);
       background:
-        linear-gradient(90deg, rgba(247, 250, 252, 0.94), rgba(247, 250, 252, 0.70) 46%, rgba(247, 250, 252, 0.52)),
+        linear-gradient(90deg, rgba(244, 248, 251, 0.97), rgba(244, 248, 251, 0.83) 48%, rgba(244, 248, 251, 0.60)),
         url("/static/assets/hefei-swan-lake.jpg") center / cover fixed no-repeat;
     }
 
@@ -71,7 +71,7 @@
       place-items: center;
       border-radius: 8px;
       color: white;
-      background: linear-gradient(135deg, var(--brand), var(--blue));
+      background: var(--brand);
       font-weight: 800;
       letter-spacing: 0;
     }
@@ -280,7 +280,7 @@
       min-width: 138px;
       color: white;
       border-color: transparent;
-      background: linear-gradient(135deg, var(--brand), var(--blue));
+      background: var(--brand);
     }
 
     .btn.secondary {
@@ -451,7 +451,7 @@
     .msg.user {
       align-self: flex-end;
       color: white;
-      background: linear-gradient(135deg, var(--brand), var(--blue));
+      background: var(--brand);
     }
 
     .msg.bot {
@@ -573,6 +573,41 @@
       margin-top: 16px;
     }
 
+    .portal-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      margin-bottom: 16px;
+      padding: 0 10px;
+      border-left: 3px solid #c7332e;
+      color: var(--brand-dark);
+      background: rgba(255, 255, 255, 0.72);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .account-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .text-btn {
+      padding: 0;
+      border: 0;
+      color: var(--brand);
+      background: transparent;
+      font-weight: 700;
+    }
+
+    .required::after { content: " *"; color: #c7332e; }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -630,14 +665,17 @@
         <span id="healthText" class="health-copy">服务连接中</span>
         <button class="nav-btn" type="button" data-route="query">查询需求单</button>
         <button class="nav-btn primary hidden" id="newDemandBtn" type="button">新建需求</button>
+        <span class="health-copy hidden" id="accountName"></span>
+        <button class="nav-btn hidden" id="logoutBtn" type="button">退出登录</button>
       </div>
     </header>
 
     <section class="page" id="loginPage">
       <div class="portal-grid">
         <div class="intro">
-          <h2>先建需求单，再由智能顾问连续对话推荐项目。</h2>
-          <p>参考工单式业务流程：用户登录后填写科创需求表单，系统生成需求单号，并把结构化需求交给意图识别、记忆、RAG 检索、规则匹配、融合排序、证据生成和回复 Agent 协同处理。</p>
+          <span class="portal-kicker">安徽省科创资源智能服务</span>
+          <h2>提交技术需求，获取可追溯的项目推荐。</h2>
+          <p>注册后填写科创需求表单，系统生成需求单号，并由意图识别、记忆、RAG 检索、规则匹配、融合排序、证据生成和回复 Agent 协同完成推荐服务。</p>
           <div class="feature-strip">
             <div class="feature"><b>需求表单前置</b><span>先收集产业赛道、技术方向、阶段、合作方式、预算与地域偏好。</span></div>
             <div class="feature"><b>多轮对话承接</b><span>需求单创建后进入会话，后续补充条件会沿用同一 session。</span></div>
@@ -648,35 +686,53 @@
         <form class="card" id="loginForm">
           <div class="card-head">
             <h2>用户登录</h2>
-            <p>演示版使用本地登录态，提交后进入需求填写流程。</p>
+            <p>使用已注册的手机号登录，继续提交或查询您的科创需求。</p>
           </div>
           <div class="card-body">
             <div class="field">
-              <label for="loginName">姓名</label>
-              <input id="loginName" name="name" required placeholder="请输入姓名" autocomplete="name" />
+              <label class="required" for="loginMobile">手机号</label>
+              <input id="loginMobile" name="mobile" required inputmode="numeric" pattern="1[0-9]{10}" placeholder="请输入注册手机号" autocomplete="tel" />
             </div>
             <div class="field" style="margin-top: 14px;">
-              <label for="loginOrg">机构 / 企业</label>
-              <input id="loginOrg" name="org" required placeholder="例如：合肥某投资机构" autocomplete="organization" />
-            </div>
-            <div class="field" style="margin-top: 14px;">
-              <label for="loginMobile">手机号</label>
-              <input id="loginMobile" name="mobile" required placeholder="用于需求单本地查询" autocomplete="tel" />
-            </div>
-            <div class="field" style="margin-top: 14px;">
-              <label for="loginRole">用户角色</label>
-              <select id="loginRole" name="role">
-                <option>投资机构</option>
-                <option>企业技术负责人</option>
-                <option>高校院所</option>
-                <option>政府园区</option>
-                <option>个人创业者</option>
-              </select>
+              <label class="required" for="loginPassword">密码</label>
+              <input id="loginPassword" name="password" required minlength="8" type="password" placeholder="请输入密码" autocomplete="current-password" />
             </div>
             <div class="form-footer">
-              <span class="hint">登录信息仅用于本次演示的需求单关联。</span>
+              <span class="hint">首次使用请先完成注册。</span>
               <button class="btn primary" type="submit">进入需求填写</button>
             </div>
+            <div class="account-switch"><span>还没有账户？</span><button class="text-btn" type="button" data-route="register">立即注册</button></div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="page hidden" id="registerPage">
+      <div class="portal-grid">
+        <div class="intro">
+          <span class="portal-kicker">服务对象注册</span>
+          <h2>建立服务档案，开始智能匹配。</h2>
+          <p>注册信息仅用于识别需求主体和关联需求单。项目推荐基于本平台已入库的安徽科创项目数据完成。</p>
+          <div class="feature-strip">
+            <div class="feature"><b>需求主体识别</b><span>区分企业、高校院所、投资机构与园区等需求场景。</span></div>
+            <div class="feature"><b>需求单连续服务</b><span>同一账号可持续补充条件，保持会话上下文。</span></div>
+            <div class="feature"><b>数据最小化</b><span>仅收集提供推荐服务所需的基础信息。</span></div>
+          </div>
+        </div>
+
+        <form class="card" id="registerForm">
+          <div class="card-head"><h2>用户注册</h2><p>请使用真实手机号完成账户创建。</p></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field"><label class="required" for="registerName">姓名</label><input id="registerName" name="name" required maxlength="50" autocomplete="name" placeholder="请输入姓名" /></div>
+              <div class="field"><label class="required" for="registerRole">用户角色</label><select id="registerRole" name="role"><option>企业技术负责人</option><option>投资机构</option><option>高校院所</option><option>政府园区</option><option>个人创业者</option></select></div>
+              <div class="field full"><label class="required" for="registerOrg">机构 / 企业</label><input id="registerOrg" name="organization" required maxlength="120" autocomplete="organization" placeholder="例如：合肥某科技有限公司" /></div>
+              <div class="field full"><label class="required" for="registerMobile">手机号</label><input id="registerMobile" name="mobile" required inputmode="numeric" pattern="1[0-9]{10}" autocomplete="tel" placeholder="请输入11位手机号" /></div>
+              <div class="field"><label class="required" for="registerPassword">设置密码</label><input id="registerPassword" name="password" required minlength="8" type="password" autocomplete="new-password" placeholder="至少8位字符" /></div>
+              <div class="field"><label class="required" for="registerPasswordConfirm">确认密码</label><input id="registerPasswordConfirm" name="passwordConfirm" required minlength="8" type="password" autocomplete="new-password" placeholder="再次输入密码" /></div>
+            </div>
+            <div class="form-footer"><span class="hint">注册即表示同意仅将信息用于本平台需求推荐服务。</span><button class="btn primary" id="registerBtn" type="submit">完成注册</button></div>
+            <div class="account-switch"><span>已有账户？</span><button class="text-btn" type="button" data-route="login">返回登录</button></div>
           </div>
         </form>
       </div>
@@ -856,6 +912,7 @@
 
     const pages = {
       login: document.getElementById("loginPage"),
+      register: document.getElementById("registerPage"),
       intake: document.getElementById("intakePage"),
       query: document.getElementById("queryPage"),
       chat: document.getElementById("chatPage")
@@ -870,6 +927,8 @@
     const sendBtn = document.getElementById("sendBtn");
     const chatInput = document.getElementById("chatInput");
     const toastEl = document.getElementById("toast");
+    const accountNameEl = document.getElementById("accountName");
+    const logoutBtn = document.getElementById("logoutBtn");
 
     function readJson(key, fallback) {
       try {
@@ -884,10 +943,29 @@
       localStorage.setItem(key, JSON.stringify(value));
     }
 
+    function renderAccount() {
+      const signedIn = Boolean(state.user);
+      accountNameEl.classList.toggle("hidden", !signedIn);
+      logoutBtn.classList.toggle("hidden", !signedIn);
+      accountNameEl.textContent = signedIn ? `${state.user.name} · ${state.user.org}` : "";
+    }
+
+    async function submitAccount(endpoint, payload) {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "账户服务暂不可用");
+      return data.user;
+    }
+
     function show(route) {
       Object.values(pages).forEach(page => page.classList.add("hidden"));
       pages[route].classList.remove("hidden");
       newDemandBtn.classList.toggle("hidden", route === "login" || route === "intake");
+      renderAccount();
       if (route === "chat") renderDemand();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1056,12 +1134,64 @@
       show("intake");
     });
 
-    document.getElementById("loginForm").addEventListener("submit", event => {
+    document.getElementById("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
-      state.user = formToObject(event.currentTarget);
-      saveJson("anhui_user", state.user);
-      document.getElementById("demandType").value = state.user.role || "投资机构";
-      show("intake");
+      const form = event.currentTarget;
+      const button = form.querySelector("button[type=submit]");
+      button.disabled = true;
+      button.textContent = "登录中";
+      try {
+        state.user = await submitAccount("/api/auth/login", formToObject(form));
+        saveJson("anhui_user", state.user);
+        document.getElementById("demandType").value = state.user.role || "投资机构";
+        toast("登录成功，欢迎使用项目推荐服务。");
+        show("intake");
+      } catch (error) {
+        toast(error.message || "登录失败，请重试。");
+      } finally {
+        button.disabled = false;
+        button.textContent = "进入需求填写";
+      }
+    });
+
+    document.getElementById("registerForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const values = formToObject(form);
+      if (values.password !== values.passwordConfirm) {
+        toast("两次输入的密码不一致。");
+        return;
+      }
+      const button = document.getElementById("registerBtn");
+      button.disabled = true;
+      button.textContent = "注册中";
+      try {
+        delete values.passwordConfirm;
+        state.user = await submitAccount("/api/auth/register", values);
+        saveJson("anhui_user", state.user);
+        document.getElementById("demandType").value = state.user.role || "投资机构";
+        form.reset();
+        toast("注册成功，已进入需求填写。");
+        show("intake");
+      } catch (error) {
+        toast(error.message || "注册失败，请稍后重试。");
+      } finally {
+        button.disabled = false;
+        button.textContent = "完成注册";
+      }
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      state.user = null;
+      state.demand = null;
+      state.sessionId = "";
+      localStorage.removeItem("anhui_user");
+      localStorage.removeItem("anhui_current_demand");
+      localStorage.removeItem("anhui_session_id");
+      document.getElementById("loginForm").reset();
+      messagesEl.innerHTML = "";
+      show("login");
+      toast("已退出登录。");
     });
 
     document.getElementById("intakeForm").addEventListener("submit", async event => {
