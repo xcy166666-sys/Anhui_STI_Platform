@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.CVM_USER }}
           key: ${{ secrets.CVM_SSH_PRIVATE_KEY }}
           port: ${{ secrets.CVM_PORT }}
-          source: "."
+          source: "Dockerfile.anhui,docker-compose.prod.yml,.dockerignore,deploy,anhui_frontend,mewhelp_backend"
           target: "/tmp/anhui-sti-platform-upload"
           overwrite: true
 

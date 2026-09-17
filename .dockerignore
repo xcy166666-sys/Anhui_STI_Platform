@@ -18,3 +18,12 @@ rag_backend/storage/
 rag_backend/*.dump
 rag_backend/*.sql
 deploy/backups/
+mewhelp_backend/.venv/
+mewhelp_backend/__pycache__/
+mewhelp_backend/**/__pycache__/
+mewhelp_backend/.pytest_cache/
+mewhelp_backend/tests/
+mewhelp_backend/reports/
+mewhelp_backend/logs/
+mewhelp_backend/uv.lock
+mewhelp_backend/docker-compose*.yml
