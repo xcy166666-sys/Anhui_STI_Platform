@@ -192,6 +192,9 @@ anhui_data/cleaned/*.csv
 anhui_frontend/*-preview*.png
 anhui_frontend/verification.png
 anhui_frontend/assets/swan-lake-candidate-*.jpg
+logs/
+mewhelp_backend/logs/
+mewhelp_backend/reports/
 
 # ==========================
 # 前端构建产物

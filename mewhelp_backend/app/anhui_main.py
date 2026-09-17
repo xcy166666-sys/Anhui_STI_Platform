@@ -18,6 +18,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy import create_engine, text
 
+from app.anhui_observability import AnhuiTraceRecorder
+
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_FILE = ROOT / "anhui_data" / "cleaned" / "project_vectors_source.jsonl"
@@ -717,6 +719,7 @@ class AgentHarness:
     ) -> None:
         self.memory_store = memory_store
         self.chat_client = chat_client
+        self.trace_recorder = AnhuiTraceRecorder()
         self.agents = [
             IntentAgent(chat_client),
             MemoryAgent(),
@@ -726,6 +729,11 @@ class AgentHarness:
             EvidenceAgent(),
             ResponseAgent(chat_client),
         ]
+
+    def _run_agent(self, agent: Any, state: dict[str, Any]) -> dict[str, Any]:
+        stage_name = agent.__class__.__name__
+        with self.trace_recorder.stage(state["trace_id"], stage_name, state):
+            return agent.run(state)
 
     def run(self, request: ChatRequest) -> dict[str, Any]:
         session_id = request.session_id or f"chat_{uuid.uuid4().hex[:12]}"
@@ -740,9 +748,9 @@ class AgentHarness:
             "agent_trace": [],
         }
 
-        state = self.agents[0].run(state)
+        state = self._run_agent(self.agents[0], state)
         if not state["should_retrieve"]:
-            state = self.agents[-1].run(state)
+            state = self._run_agent(self.agents[-1], state)
             answer = state["answer"]
             session["updated_at"] = now_iso()
             session["turns"].append(
@@ -769,10 +777,10 @@ class AgentHarness:
             }
 
         for agent in self.agents[1:-1]:
-            state = agent.run(state)
+            state = self._run_agent(agent, state)
 
         recommendations = state["recommendations"]
-        state = self.agents[-1].run(state)
+        state = self._run_agent(self.agents[-1], state)
         answer = state["answer"]
         answer_mode = state["answer_mode"]
         session["updated_at"] = now_iso()
@@ -831,6 +839,10 @@ def healthz() -> dict[str, Any]:
             "embedding_dimensions": EMBEDDING_DIMENSIONS,
             "api_key_configured": rag_client.available,
             "chat_model": CHAT_MODEL,
+        },
+        "observability": {
+            "local_trace_jsonl": str((ROOT / "logs" / "traces").as_posix()),
+            "langfuse_configured": harness.trace_recorder.langfuse_enabled,
         },
         "agents": [
             "IntentAgent",
