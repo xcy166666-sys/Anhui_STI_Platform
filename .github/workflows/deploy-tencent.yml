@@ -55,6 +55,7 @@ jobs:
             sudo mkdir -p "$DEPLOY_PATH"
             sudo chown "$USER:$USER" "$DEPLOY_PATH"
             for item in /tmp/anhui-sti-platform-upload/* /tmp/anhui-sti-platform-upload/.[!.]*; do
+              [ -e "$item" ] || continue
               name="$(basename "$item")"
               case "$name" in
                 .git|.env|server-data) continue ;;
