@@ -12,6 +12,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare deploy bundle
+        run: |
+          set -e
+          rm -rf deploy_bundle
+          mkdir -p deploy_bundle/mewhelp_backend/scripts deploy_bundle/mewhelp_backend/tests/data
+          cp Dockerfile.anhui docker-compose.prod.yml deploy_bundle/
+          cp -a deploy deploy_bundle/
+          cp -a anhui_frontend deploy_bundle/
+          cp -a mewhelp_backend/app deploy_bundle/mewhelp_backend/
+          cp mewhelp_backend/requirements-anhui.txt deploy_bundle/mewhelp_backend/
+          cp mewhelp_backend/scripts/eval_anhui_ragas.py deploy_bundle/mewhelp_backend/scripts/
+          cp mewhelp_backend/tests/data/anhui_ragas_eval.jsonl deploy_bundle/mewhelp_backend/tests/data/
+
       - name: Upload project to Tencent CVM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -19,8 +32,9 @@ jobs:
           username: ${{ secrets.CVM_USER }}
           key: ${{ secrets.CVM_SSH_PRIVATE_KEY }}
           port: ${{ secrets.CVM_PORT }}
-          source: "Dockerfile.anhui,docker-compose.prod.yml,.dockerignore,deploy,anhui_frontend,mewhelp_backend"
+          source: "deploy_bundle/*"
           target: "/tmp/anhui-sti-platform-upload"
+          strip_components: 1
           overwrite: true
 
       - name: Deploy over SSH
