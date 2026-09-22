@@ -186,6 +186,8 @@ rag_backend/alembic/versions/*.py
 Thumbs.db
 
 # Anhui demo local datasets, conversation state, and browser artifacts
+.env
+server-data/
 anhui_data/chat_state.json
 anhui_data/cleaned/*.jsonl
 anhui_data/cleaned/*.csv

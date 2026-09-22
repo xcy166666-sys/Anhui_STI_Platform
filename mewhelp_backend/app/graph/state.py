@@ -27,6 +27,11 @@ class ConversationState(TypedDict, total=False):
     user_id: str
     conversation_id: int
     intent: str            # 九类之一(ch08 增「人工」)
+    sub_intent: str        # 意图细分,如 query_logistics/refund_request/product_policy
+    candidate_intents: list  # 语义 Top-K 候选意图,供调试和评测
+    intent_slots: dict     # 意图阶段抽取的轻量槽位(order_id/products/actions 等)
+    intent_tasks: list     # 意图阶段解析出的任务结构,执行仍由 LangGraph 路由负责
+    is_multi_task: bool
     resolved_query: str    # 指代消解+改写后的完整问句(下游检索/判意图都用它)
     intent_confidence: float  # 意图 JSON 的 confidence(0-1)
     order_id: str          # refund_flow:抽到/点选回填的订单号

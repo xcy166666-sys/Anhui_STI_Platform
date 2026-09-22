@@ -17,6 +17,21 @@ services:
     ports:
       - "127.0.0.1:15432:5432"
 
+  redis:
+    image: redis:7-alpine
+    container_name: anhui-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:16379:6379"
+
   anhui-app:
     build:
       context: .
@@ -27,10 +42,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-rag_center}
+      MEMORY_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-rag_center}
+      REDIS_URL: redis://redis:6379/0
+      MEMORY_ENABLED: ${MEMORY_ENABLED:-true}
+      MEMORY_TTL_SECONDS: ${MEMORY_TTL_SECONDS:-604800}
     volumes:
       - ./server-data/anhui_data:/app/anhui_data
     ports:
@@ -55,3 +76,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

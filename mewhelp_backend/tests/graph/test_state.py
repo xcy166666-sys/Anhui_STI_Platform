@@ -23,6 +23,7 @@ def test_add_messages_reducer_appends():
 def test_state_has_required_keys():
     keys = ConversationState.__annotations__
     for k in ["messages", "user_id", "conversation_id", "intent", "route",
+              "sub_intent", "candidate_intents", "intent_slots", "intent_tasks", "is_multi_task",
               "evidence", "citations", "evidence_strong", "answer",
               "steps", "tokens_used", "suggested_actions", "trace"]:
         assert k in keys

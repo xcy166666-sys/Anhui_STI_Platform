@@ -7,3 +7,5 @@ SQLAlchemy==2.0.46
 psycopg2-binary==2.9.9
 pgvector==0.4.2
 python-multipart==0.0.22
+redis==5.2.1
+langchain-core==1.4.9

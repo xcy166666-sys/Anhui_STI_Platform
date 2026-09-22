@@ -7,18 +7,21 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #1c2b3a;
-      --muted: #637488;
-      --line: #dbe3ea;
-      --panel: rgba(255, 255, 255, 0.94);
+      --ink: #142033;
+      --muted: #66758a;
+      --line: rgba(130, 158, 190, 0.22);
+      --panel: rgba(255, 255, 255, 0.88);
       --panel-strong: #ffffff;
-      --brand: #0a5b9f;
-      --brand-dark: #074a82;
-      --blue: #1477bb;
-      --gold: #b8862e;
-      --danger: #b42318;
+      --brand: #3d74f6;
+      --brand-dark: #2454cf;
+      --blue: #5b8cff;
+      --gold: #a97824;
+      --danger: #c7332e;
       --ok: #15803d;
-      --shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+      --paper: #f4f8ff;
+      --shadow: 0 24px 70px rgba(75, 115, 174, 0.16);
+      --soft-blue: #eaf3ff;
+      --grid-line: rgba(80, 126, 190, 0.08);
     }
 
     * { box-sizing: border-box; }
@@ -28,8 +31,12 @@
       font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--ink);
       background:
-        linear-gradient(90deg, rgba(244, 248, 251, 0.97), rgba(244, 248, 251, 0.83) 48%, rgba(244, 248, 251, 0.60)),
+        linear-gradient(rgba(245, 249, 255, 0.80), rgba(248, 251, 255, 0.84)),
+        radial-gradient(circle at 62% 20%, rgba(96, 148, 255, 0.20), transparent 34%),
+        linear-gradient(rgba(76, 123, 190, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(76, 123, 190, 0.045) 1px, transparent 1px),
         url("/static/assets/hefei-swan-lake.jpg") center / cover fixed no-repeat;
+      background-size: auto, auto, 96px 96px, 96px 96px, auto;
     }
 
     button, input, select, textarea { font: inherit; }
@@ -40,7 +47,7 @@
     .app-shell {
       min-height: 100vh;
       display: grid;
-      grid-template-rows: 68px 1fr;
+      grid-template-rows: 76px 1fr;
     }
 
     .topbar {
@@ -51,9 +58,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 24px;
-      padding: 0 32px;
-      background: rgba(255, 255, 255, 0.78);
-      border-bottom: 1px solid var(--line);
+      padding: 0 34px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.70);
+      border-bottom: 1px solid rgba(105, 139, 188, 0.13);
+      box-shadow: 0 8px 30px rgba(67, 103, 156, 0.08);
       backdrop-filter: blur(18px);
     }
 
@@ -71,9 +80,10 @@
       place-items: center;
       border-radius: 8px;
       color: white;
-      background: var(--brand);
+      background: linear-gradient(135deg, #4278ff, #74a6ff);
       font-weight: 800;
       letter-spacing: 0;
+      box-shadow: 0 8px 22px rgba(61, 116, 246, 0.24);
     }
 
     .brand-title {
@@ -109,48 +119,63 @@
       box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.12);
     }
 
+    .health-dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(199, 51, 46, 0.14);
+    }
+
     .nav-btn {
       min-height: 36px;
       padding: 0 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.68);
+      border-radius: 999px;
+      color: #2d3a4d;
+      background: rgba(255, 255, 255, 0.62);
+      border-color: rgba(105, 139, 188, 0.22);
+    }
+
+    .nav-btn:hover,
+    .btn:hover,
+    .copy-btn:hover,
+    .text-btn:hover {
+      filter: brightness(0.98);
     }
 
     .nav-btn.primary {
       color: white;
       border-color: transparent;
       background: var(--brand);
+      box-shadow: 0 10px 26px rgba(61, 116, 246, 0.22);
     }
 
     .page {
-      width: min(1180px, calc(100vw - 40px));
+      width: min(1500px, calc(100vw - 40px));
       margin: 0 auto;
       padding: 28px 0;
     }
 
     .portal-grid {
-      min-height: calc(100vh - 124px);
+      min-height: calc(100vh - 136px);
       display: grid;
       grid-template-columns: minmax(0, 1fr) 420px;
       align-items: center;
-      gap: 28px;
+      gap: 34px;
     }
 
     .intro h2 {
       margin: 0 0 16px;
       max-width: 760px;
-      font-size: clamp(32px, 4vw, 54px);
-      line-height: 1.1;
+      font-size: clamp(30px, 3.4vw, 48px);
+      line-height: 1.16;
       letter-spacing: 0;
+      color: #102a43;
     }
 
     .intro p {
       margin: 0 0 24px;
       max-width: 700px;
-      color: #394150;
-      font-size: 17px;
+      color: #334155;
+      font-size: 16px;
       line-height: 1.8;
     }
 
@@ -161,13 +186,44 @@
       max-width: 820px;
     }
 
+    .service-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      max-width: 760px;
+      margin: 0 0 16px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      box-shadow: 0 12px 34px rgba(10, 35, 66, 0.08);
+    }
+
+    .service-stat {
+      min-height: 76px;
+      padding: 13px 16px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .service-stat b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--brand-dark);
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .service-stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .feature {
       min-height: 104px;
-      padding: 16px;
+      padding: 15px 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(14px);
+      border-left: 4px solid var(--brand);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 28px rgba(10, 35, 66, 0.08);
     }
 
     .feature b {
@@ -187,12 +243,12 @@
       border-radius: 8px;
       background: var(--panel);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
     }
 
     .card-head {
-      padding: 22px 24px 12px;
+      padding: 20px 24px 13px;
       border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #f7fafc);
     }
 
     .card-head h2, .card-head h3 {
@@ -233,7 +289,7 @@
       min-height: 44px;
       padding: 11px 12px;
       border: 1px solid rgba(17, 24, 39, 0.16);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--ink);
       background: rgba(255, 255, 255, 0.86);
       outline: none;
@@ -248,8 +304,8 @@
     .field input:focus,
     .field select:focus,
     .field textarea:focus {
-      border-color: rgba(15, 118, 110, 0.7);
-      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+      border-color: rgba(7, 90, 156, 0.7);
+      box-shadow: 0 0 0 3px rgba(7, 90, 156, 0.12);
     }
 
     .form-footer {
@@ -270,7 +326,7 @@
       min-height: 44px;
       padding: 0 18px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--ink);
       background: rgba(255, 255, 255, 0.74);
       font-weight: 700;
@@ -281,19 +337,44 @@
       color: white;
       border-color: transparent;
       background: var(--brand);
+      box-shadow: 0 8px 18px rgba(7, 90, 156, 0.18);
     }
 
     .btn.secondary {
       color: var(--brand-dark);
-      border-color: rgba(15, 118, 110, 0.28);
-      background: rgba(15, 118, 110, 0.08);
+      border-color: rgba(61, 116, 246, 0.22);
+      background: rgba(61, 116, 246, 0.08);
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid rgba(105, 139, 188, 0.22);
+      border-radius: 999px;
+      color: #2c4770;
+      background: rgba(255, 255, 255, 0.68);
+      box-shadow: 0 10px 24px rgba(72, 110, 166, 0.12);
+    }
+
+    .icon-btn:hover {
+      color: var(--brand-dark);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
     }
 
     .step-page {
-      min-height: calc(100vh - 124px);
+      min-height: calc(100vh - 136px);
       display: grid;
       align-items: start;
-      gap: 18px;
+      gap: 14px;
     }
 
     .stepper {
@@ -305,24 +386,42 @@
     .step {
       padding: 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.78);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
       color: var(--muted);
       font-size: 13px;
     }
 
     .step.active {
       color: var(--brand-dark);
-      border-color: rgba(15, 118, 110, 0.32);
-      background: rgba(15, 118, 110, 0.11);
+      border-color: rgba(7, 90, 156, 0.32);
+      background: rgba(7, 90, 156, 0.1);
       font-weight: 800;
+    }
+
+    .step.done {
+      color: #155e75;
+      border-color: rgba(14, 116, 144, 0.24);
+      background: rgba(14, 116, 144, 0.08);
+      font-weight: 700;
     }
 
     .workbench {
       height: calc(100vh - 112px);
       display: grid;
-      grid-template-columns: 320px minmax(0, 1fr) 360px;
+      grid-template-columns: 316px minmax(520px, 1fr) 380px;
       gap: 14px;
+      padding: 4px 0 0;
+      background: transparent;
+      transition: grid-template-columns 0.22s ease;
+    }
+
+    .workbench.sidebar-collapsed {
+      grid-template-columns: minmax(620px, 1fr) 400px;
+    }
+
+    .workbench.sidebar-collapsed .side-panel {
+      display: none;
     }
 
     .side-panel,
@@ -331,9 +430,9 @@
       min-height: 0;
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: 0 18px 54px rgba(15, 23, 42, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow);
       backdrop-filter: blur(18px);
     }
 
@@ -347,6 +446,7 @@
     .result-head {
       padding: 18px;
       border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(245,249,255,0.78));
     }
 
     .demand-summary h3,
@@ -361,11 +461,30 @@
       align-items: center;
       min-height: 30px;
       padding: 0 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       color: var(--brand-dark);
-      background: rgba(15, 118, 110, 0.12);
+      border: 1px solid rgba(61, 116, 246, 0.18);
+      background: rgba(61, 116, 246, 0.08);
       font-weight: 800;
       font-size: 13px;
+    }
+
+    .ticket-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .copy-btn {
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--brand-dark);
+      background: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .kv {
@@ -395,8 +514,9 @@
     .agent-list li {
       padding: 10px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.64);
+      border-radius: 12px;
+      border-left: 3px solid rgba(61, 116, 246, 0.32);
+      background: rgba(255,255,255,0.82);
       font-size: 13px;
     }
 
@@ -413,9 +533,27 @@
     }
 
     .chat-head {
+      position: relative;
       padding: 18px 20px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.48);
+      background: linear-gradient(180deg, rgba(255,255,255,0.90), rgba(247,251,255,0.80));
+    }
+
+    .sidebar-toggle {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+    }
+
+    .workbench.sidebar-collapsed .sidebar-toggle svg {
+      transform: scaleX(-1);
+    }
+
+    .chat-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
     }
 
     .chat-head h2 {
@@ -430,10 +568,35 @@
       line-height: 1.6;
     }
 
+    .run-status {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border: 1px solid rgba(61, 116, 246, 0.18);
+      border-radius: 999px;
+      color: var(--brand-dark);
+      background: rgba(61, 116, 246, 0.08);
+      font-weight: 700;
+    }
+
     .messages {
       min-height: 0;
       overflow: auto;
-      padding: 20px;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(105, 158, 255, 0.14), transparent 30%),
+        rgba(247, 251, 255, 0.68);
       display: flex;
       flex-direction: column;
       gap: 13px;
@@ -442,7 +605,7 @@
     .msg {
       max-width: min(760px, 88%);
       padding: 13px 15px;
-      border-radius: 8px;
+      border-radius: 16px;
       white-space: pre-wrap;
       line-height: 1.75;
       font-size: 14px;
@@ -451,22 +614,24 @@
     .msg.user {
       align-self: flex-end;
       color: white;
-      background: var(--brand);
+      background: linear-gradient(135deg, #2f6cf6, #5d93ff);
+      box-shadow: 0 14px 28px rgba(61, 116, 246, 0.2);
     }
 
     .msg.bot {
       align-self: flex-start;
       border: 1px solid var(--line);
-      background: var(--panel-strong);
+      background: rgba(255, 255, 255, 0.92);
+      border-left: 4px solid rgba(61, 116, 246, 0.24);
     }
 
     .composer {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
-      padding: 14px;
+      padding: 16px;
       border-top: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.74);
+      background: rgba(255, 255, 255, 0.86);
     }
 
     .composer textarea {
@@ -474,12 +639,12 @@
       min-height: 48px;
       max-height: 132px;
       resize: none;
-      padding: 12px 13px;
+      padding: 14px 16px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 16px;
       outline: none;
       line-height: 1.6;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.82);
     }
 
     .result-panel {
@@ -506,8 +671,9 @@
     .project {
       padding: 14px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.84);
+      border-radius: 14px;
+      border-left: 4px solid rgba(61, 116, 246, 0.24);
+      background: rgba(255, 255, 255, 0.88);
     }
 
     .project h3 {
@@ -525,10 +691,10 @@
 
     .tag {
       padding: 3px 7px;
-      border: 1px solid rgba(37, 99, 235, 0.18);
+      border: 1px solid rgba(61, 116, 246, 0.18);
       border-radius: 999px;
-      color: #1d4ed8;
-      background: rgba(37, 99, 235, 0.08);
+      color: #275ad7;
+      background: rgba(61, 116, 246, 0.08);
       font-size: 12px;
     }
 
@@ -537,6 +703,21 @@
       color: #344054;
       font-size: 13px;
       line-height: 1.7;
+    }
+
+    .project-meta {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .project-meta a {
+      color: var(--brand);
+      text-decoration: none;
+      word-break: break-all;
     }
 
     .score {
@@ -557,9 +738,9 @@
     .empty {
       padding: 18px;
       border: 1px dashed rgba(17, 24, 39, 0.18);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.58);
+      background: #ffffff;
       font-size: 13px;
       line-height: 1.7;
     }
@@ -581,7 +762,7 @@
       padding: 0 10px;
       border-left: 3px solid #c7332e;
       color: var(--brand-dark);
-      background: rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.92);
       font-size: 13px;
       font-weight: 700;
     }
@@ -630,6 +811,7 @@
         grid-template-columns: 1fr;
         height: auto;
       }
+      .workbench.sidebar-collapsed { grid-template-columns: 1fr; }
       .workbench { min-height: calc(100vh - 112px); }
       .side-panel, .result-panel { min-height: 320px; }
       .chat-panel { min-height: 620px; }
@@ -637,15 +819,21 @@
 
     @media (max-width: 720px) {
       .topbar {
-        min-height: 68px;
-        padding: 0 14px;
+        min-height: 76px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 14px;
       }
+      .app-shell { grid-template-rows: auto 1fr; }
+      .top-actions { width: 100%; flex-wrap: wrap; }
       .brand-subtitle, .top-actions .health-copy { display: none; }
       .page { width: min(100vw - 20px, 1180px); padding: 14px 0; }
       .portal-grid { gap: 14px; }
-      .feature-strip, .form-grid, .stepper { grid-template-columns: 1fr; }
+      .feature-strip, .form-grid, .stepper, .service-stats { grid-template-columns: 1fr; }
       .form-footer, .composer { grid-template-columns: 1fr; display: grid; }
-      .btn, .nav-btn { width: 100%; }
+      .btn { width: 100%; }
+      .nav-btn { width: auto; flex: 1 1 120px; }
       .msg { max-width: 100%; }
     }
   </style>
@@ -657,11 +845,11 @@
         <div class="brand-mark">皖</div>
         <div>
           <h1 class="brand-title">皖创智策</h1>
-          <span class="brand-subtitle">安徽科创项目 Multi-Agent 推荐与需求服务平台</span>
+          <span class="brand-subtitle">安徽科创项目智能推荐与需求服务平台</span>
         </div>
       </div>
       <div class="top-actions">
-        <span class="health-dot"></span>
+        <span class="health-dot" id="healthDot"></span>
         <span id="healthText" class="health-copy">服务连接中</span>
         <button class="nav-btn" type="button" data-route="query">查询需求单</button>
         <button class="nav-btn primary hidden" id="newDemandBtn" type="button">新建需求</button>
@@ -676,6 +864,11 @@
           <span class="portal-kicker">安徽省科创资源智能服务</span>
           <h2>提交技术需求，获取可追溯的项目推荐。</h2>
           <p>注册后填写科创需求表单，系统生成需求单号，并由意图识别、记忆、RAG 检索、规则匹配、融合排序、证据生成和回复 Agent 协同完成推荐服务。</p>
+          <div class="service-stats">
+            <div class="service-stat"><b>11997</b><span>入库科创项目</span></div>
+            <div class="service-stat"><b>7</b><span>智能处理环节</span></div>
+            <div class="service-stat"><b>1单1档</b><span>需求单全程留痕</span></div>
+          </div>
           <div class="feature-strip">
             <div class="feature"><b>需求表单前置</b><span>先收集产业赛道、技术方向、阶段、合作方式、预算与地域偏好。</span></div>
             <div class="feature"><b>多轮对话承接</b><span>需求单创建后进入会话，后续补充条件会沿用同一 session。</span></div>
@@ -713,6 +906,11 @@
           <span class="portal-kicker">服务对象注册</span>
           <h2>建立服务档案，开始智能匹配。</h2>
           <p>注册信息仅用于识别需求主体和关联需求单。项目推荐基于本平台已入库的安徽科创项目数据完成。</p>
+          <div class="service-stats">
+            <div class="service-stat"><b>统一登录</b><span>关联需求主体</span></div>
+            <div class="service-stat"><b>按单查询</b><span>恢复历史对话</span></div>
+            <div class="service-stat"><b>证据可查</b><span>保留推荐依据</span></div>
+          </div>
           <div class="feature-strip">
             <div class="feature"><b>需求主体识别</b><span>区分企业、高校院所、投资机构与园区等需求场景。</span></div>
             <div class="feature"><b>需求单连续服务</b><span>同一账号可持续补充条件，保持会话上下文。</span></div>
@@ -750,7 +948,7 @@
         <form class="card" id="intakeForm">
           <div class="card-head">
             <h2>科创项目需求表单</h2>
-            <p>这一步对应 game-ai 的提交工单流程。表单会被整理成首轮需求，提交给后端 Agent 链路完成检索推荐。</p>
+            <p>表单会生成需求单号并写入后端，后续可按需求单号恢复对话和推荐结果。</p>
           </div>
           <div class="card-body">
             <div class="form-grid">
@@ -833,7 +1031,7 @@
         <form class="card" id="queryForm">
           <div class="card-head">
             <h2>查询需求单</h2>
-            <p>输入需求单号可以恢复本机保存的需求记录，并继续进入推荐对话。</p>
+            <p>输入需求单号可从后端恢复需求记录、历史消息和推荐结果，并继续进入推荐对话。</p>
           </div>
           <div class="card-body">
             <div class="field">
@@ -851,11 +1049,14 @@
     </section>
 
     <section class="page hidden" id="chatPage">
-      <div class="workbench">
+      <div class="workbench" id="workbench">
         <aside class="side-panel">
           <div class="demand-summary">
             <h3>当前需求单</h3>
-            <span class="ticket-no" id="ticketNo">未创建</span>
+            <div class="ticket-row">
+              <span class="ticket-no" id="ticketNo">未创建</span>
+              <button class="copy-btn" id="copyTicketBtn" type="button">复制单号</button>
+            </div>
             <div class="kv" id="demandKv"></div>
             <div class="form-footer" style="margin-top: 16px;">
               <button class="btn secondary" type="button" data-route="intake">修改需求</button>
@@ -879,6 +1080,17 @@
           <div class="chat-head">
             <h2>智能项目顾问</h2>
             <p id="chatMeta">需求单提交后，每一轮消息都会交给大模型和 Agent 链路处理，可继续补充条件。</p>
+            <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" title="隐藏左侧栏" aria-label="隐藏左侧栏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                <path d="M9 4v16"></path>
+                <path d="m15 9-3 3 3 3"></path>
+              </svg>
+            </button>
+            <div class="run-status" id="runStatus">
+              <span class="status-pill">待处理</span>
+              <span>提交需求后开始推荐</span>
+            </div>
           </div>
           <div class="messages" id="messages"></div>
           <form class="composer" id="chatForm">
@@ -907,6 +1119,7 @@
       user: readJson("anhui_user", null),
       demand: readJson("anhui_current_demand", null),
       sessionId: localStorage.getItem("anhui_session_id") || "",
+      lastResults: readJson("anhui_last_results", []),
       busy: false
     };
 
@@ -929,6 +1142,11 @@
     const toastEl = document.getElementById("toast");
     const accountNameEl = document.getElementById("accountName");
     const logoutBtn = document.getElementById("logoutBtn");
+    const runStatusEl = document.getElementById("runStatus");
+    const copyTicketBtn = document.getElementById("copyTicketBtn");
+    const healthDot = document.getElementById("healthDot");
+    const workbenchEl = document.getElementById("workbench");
+    const sidebarToggleBtn = document.getElementById("sidebarToggle");
 
     function readJson(key, fallback) {
       try {
@@ -941,6 +1159,73 @@
 
     function saveJson(key, value) {
       localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function applySidebarState(collapsed) {
+      if (!workbenchEl || !sidebarToggleBtn) return;
+      workbenchEl.classList.toggle("sidebar-collapsed", collapsed);
+      sidebarToggleBtn.title = collapsed ? "显示左侧栏" : "隐藏左侧栏";
+      sidebarToggleBtn.setAttribute("aria-label", sidebarToggleBtn.title);
+      localStorage.setItem("anhui_sidebar_collapsed", collapsed ? "1" : "0");
+    }
+
+    function saveDemandLocal(demand) {
+      if (!demand) return;
+      saveJson("anhui_current_demand", demand);
+      const allDemands = readJson("anhui_demands", {});
+      allDemands[demand.ticketNo] = demand;
+      saveJson("anhui_demands", allDemands);
+    }
+
+    function latestResultsFromMessages(messages = []) {
+      for (const item of [...messages].reverse()) {
+        const results = item.metadata?.results || item.results;
+        if (Array.isArray(results) && results.length > 0) return results;
+      }
+      return [];
+    }
+
+    async function apiJson(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || data.message || "服务暂不可用");
+      return data;
+    }
+
+    async function createDemandRemote(demand) {
+      const data = await apiJson("/api/demands", {
+        method: "POST",
+        body: JSON.stringify({
+          ticket_no: demand.ticketNo,
+          user_id: demand.user?.mobile || "web-demo-user",
+          session_id: state.sessionId || null,
+          payload: demand
+        })
+      });
+      return data.demand;
+    }
+
+    async function getDemandRemote(ticketNo) {
+      const data = await apiJson(`/api/demands/${encodeURIComponent(ticketNo)}`);
+      return data.demand;
+    }
+
+    async function addDemandMessageRemote(role, content, metadata = {}) {
+      if (!state.demand?.ticketNo) return;
+      try {
+        await apiJson(`/api/demands/${encodeURIComponent(state.demand.ticketNo)}/messages`, {
+          method: "POST",
+          body: JSON.stringify({ role, content, trace_id: metadata.trace_id || null, metadata })
+        });
+      } catch (error) {
+        console.warn("保存需求单消息失败", error);
+      }
     }
 
     function renderAccount() {
@@ -962,10 +1247,17 @@
     }
 
     function show(route) {
+      if (route === "intake" && !state.user) {
+        route = "login";
+      }
+      if (route === "chat" && !state.demand) {
+        route = state.user ? "intake" : "login";
+      }
       Object.values(pages).forEach(page => page.classList.add("hidden"));
       pages[route].classList.remove("hidden");
-      newDemandBtn.classList.toggle("hidden", route === "login" || route === "intake");
       renderAccount();
+      const canCreateDemand = Boolean(state.user) && !["login", "register", "intake"].includes(route);
+      newDemandBtn.classList.toggle("hidden", !canCreateDemand);
       if (route === "chat") renderDemand();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1020,12 +1312,40 @@
       ].join("\n");
     }
 
-    function addMessage(role, text) {
+    function setRunStatus(label, detail, tone = "normal") {
+      const color = tone === "error" ? "#b42318" : tone === "done" ? "#15803d" : "var(--brand-dark)";
+      runStatusEl.innerHTML = `<span class="status-pill" style="color:${color}">${escapeHtml(label)}</span><span>${escapeHtml(detail || "")}</span>`;
+    }
+
+    function addMessage(role, text, options = {}) {
       const node = document.createElement("div");
       node.className = `msg ${role}`;
       node.textContent = text;
       messagesEl.appendChild(node);
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      if (!options.skipPersist && state.demand) {
+        state.demand.messages = state.demand.messages || [];
+        state.demand.messages.push({
+          role: role === "bot" ? "assistant" : role,
+          content: text,
+          createdAt: new Date().toISOString()
+        });
+        saveDemandLocal(state.demand);
+      }
+      return node;
+    }
+
+    function renderStoredMessages(demand) {
+      messagesEl.innerHTML = "";
+      const messages = demand?.messages || [];
+      if (messages.length === 0) {
+        addMessage("bot", `已恢复需求单 ${demand.ticketNo}，可以继续补充推荐条件。`, { skipPersist: true });
+        return;
+      }
+      messages.forEach(item => {
+        const role = item.role === "assistant" ? "bot" : item.role;
+        addMessage(role, item.content, { skipPersist: true });
+      });
     }
 
     function renderDemand() {
@@ -1039,6 +1359,7 @@
         <div><b>阶段：</b>${escapeHtml(demand.stage)}</div>
         <div><b>合作：</b>${escapeHtml(demand.cooperation)}</div>
         <div><b>地域：</b>${escapeHtml(demand.region || "未限定")}</div>
+        <div><b>状态：</b>${escapeHtml(demand.status || "AI_RECOMMENDING")}</div>
       `;
       chatMetaEl.textContent = `当前会话关联需求单 ${demand.ticketNo}，可继续多轮补充推荐条件。`;
     }
@@ -1058,6 +1379,7 @@
         const node = document.createElement("article");
         node.className = "project";
         const summary = item.summary || item.core_technology || item.description || "";
+        const sourceUrl = item.source_url || item.url || "";
         node.innerHTML = `
           <h3>${index + 1}. ${escapeHtml(item.name || item.project_name || item.project_id || "未命名项目")}</h3>
           <div class="tags">
@@ -1066,6 +1388,12 @@
             ${item.cooperation ? `<span class="tag">${escapeHtml(item.cooperation)}</span>` : ""}
           </div>
           <p>${escapeHtml(String(summary).slice(0, 210))}</p>
+          <div class="project-meta">
+            ${item.project_id ? `<div><b>项目ID：</b>${escapeHtml(item.project_id)}</div>` : ""}
+            ${item.source_name ? `<div><b>来源：</b>${escapeHtml(item.source_name)}</div>` : ""}
+            ${sourceUrl ? `<div><b>证据：</b><a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer">查看来源链接</a></div>` : ""}
+            ${item.reason ? `<div><b>依据：</b>${escapeHtml(item.reason)}</div>` : ""}
+          </div>
           <div class="score">
             <span><b>${pct(item.fused_score)}</b>融合</span>
             <span><b>${pct(item.rag_score)}</b>语义</span>
@@ -1081,8 +1409,12 @@
       state.busy = true;
       sendBtn.disabled = true;
       sendBtn.textContent = "处理中";
-      if (!options.silentUser) addMessage("user", query);
-      addMessage("bot", "已收到，我正在进行意图识别、需求记忆提取、RAG 召回和融合排序。");
+      setRunStatus("Agent 处理中", "意图识别、记忆提取、RAG 召回、规则匹配与融合排序正在执行");
+      if (!options.silentUser) {
+        addMessage("user", query);
+        addDemandMessageRemote("user", query, { session_id: state.sessionId || null });
+      }
+      const processingNode = addMessage("bot", "已收到，我正在进行意图识别、需求记忆提取、RAG 召回和融合排序。", { skipPersist: true });
 
       try {
         const response = await fetch("/api/chat", {
@@ -1099,12 +1431,36 @@
         const data = await response.json();
         state.sessionId = data.session_id || state.sessionId;
         localStorage.setItem("anhui_session_id", state.sessionId);
-        addMessage("bot", data.answer || "已完成推荐分析。");
+        const answer = data.answer || "已完成推荐分析。";
+        processingNode.textContent = answer;
+        if (state.demand) {
+          state.demand.messages = state.demand.messages || [];
+          state.demand.messages.push({
+            role: "assistant",
+            content: answer,
+            createdAt: new Date().toISOString(),
+            traceId: data.trace_id
+          });
+          state.demand.sessionId = state.sessionId;
+          state.demand.lastResults = data.results || [];
+          saveDemandLocal(state.demand);
+          addDemandMessageRemote("assistant", answer, {
+            session_id: state.sessionId,
+            trace_id: data.trace_id,
+            retrieval_mode: data.retrieval_mode,
+            answer_mode: data.answer_mode,
+            results: data.results || []
+          });
+        }
         renderResults(data.results || []);
+        state.lastResults = data.results || [];
+        saveJson("anhui_last_results", state.lastResults);
         const intentName = typeof data.intent === "object" ? data.intent.name : data.intent;
         resultMetaEl.textContent = `${intentName || "unknown"} / ${data.retrieval_mode || "not_run"} / ${data.answer_mode || "unknown"}`;
+        setRunStatus("处理完成", `Trace ${data.trace_id || "-"}，检索模式 ${data.retrieval_mode || "unknown"}`, "done");
       } catch (error) {
-        addMessage("bot", `请求失败：${error.message || error}`);
+        processingNode.textContent = `请求失败：${error.message || error}`;
+        setRunStatus("处理失败", error.message || String(error), "error");
       } finally {
         state.busy = false;
         sendBtn.disabled = false;
@@ -1125,12 +1481,21 @@
     });
 
     newDemandBtn.addEventListener("click", () => {
+      if (!state.user) {
+        toast("请先登录。");
+        show("login");
+        return;
+      }
       state.demand = null;
       state.sessionId = "";
+      state.lastResults = [];
       localStorage.removeItem("anhui_current_demand");
       localStorage.removeItem("anhui_session_id");
+      localStorage.removeItem("anhui_last_results");
       messagesEl.innerHTML = "";
       resultsEl.innerHTML = `<div class="empty">提交需求后，推荐结果会显示在这里。</div>`;
+      resultMetaEl.textContent = "等待首轮需求推荐";
+      setRunStatus("待处理", "提交需求后开始推荐");
       show("intake");
     });
 
@@ -1185,11 +1550,15 @@
       state.user = null;
       state.demand = null;
       state.sessionId = "";
+      state.lastResults = [];
       localStorage.removeItem("anhui_user");
       localStorage.removeItem("anhui_current_demand");
       localStorage.removeItem("anhui_session_id");
+      localStorage.removeItem("anhui_last_results");
       document.getElementById("loginForm").reset();
       messagesEl.innerHTML = "";
+      resultsEl.innerHTML = `<div class="empty">提交需求后，推荐结果会显示在这里。</div>`;
+      resultMetaEl.textContent = "等待首轮需求推荐";
       show("login");
       toast("已退出登录。");
     });
@@ -1201,37 +1570,96 @@
         show("login");
         return;
       }
+      const button = document.getElementById("createDemandBtn");
+      button.disabled = true;
+      button.textContent = "提交中";
       const data = formToObject(event.currentTarget);
       state.demand = {
         ...data,
         user: state.user,
         ticketNo: state.demand?.ticketNo || createDemandNo(),
         createdAt: new Date().toISOString(),
-        status: "AI_RECOMMENDING"
+        status: "AI_RECOMMENDING",
+        messages: []
       };
-      saveJson("anhui_current_demand", state.demand);
-      const allDemands = readJson("anhui_demands", {});
-      allDemands[state.demand.ticketNo] = state.demand;
-      saveJson("anhui_demands", allDemands);
-      messagesEl.innerHTML = "";
-      show("chat");
-      addMessage("bot", `需求单 ${state.demand.ticketNo} 已创建。下面我会先基于表单为你做首轮推荐。`);
-      await sendToAgent(buildDemandPrompt(state.demand), { silentUser: true });
+      try {
+        const remoteDemand = await createDemandRemote(state.demand);
+        const payload = remoteDemand.payload || state.demand;
+        state.demand = {
+          ...payload,
+          ticketNo: remoteDemand.ticket_no || payload.ticketNo,
+          sessionId: remoteDemand.session_id || payload.sessionId || "",
+          status: remoteDemand.status || payload.status || "AI_RECOMMENDING",
+          messages: (remoteDemand.messages || payload.messages || []).map(item => ({
+            role: item.role,
+            content: item.content,
+            createdAt: item.created_at || item.createdAt,
+            traceId: item.trace_id || item.traceId,
+            metadata: item.metadata || {}
+          })),
+          lastResults: payload.lastResults || latestResultsFromMessages(remoteDemand.messages || payload.messages || [])
+        };
+        state.lastResults = state.demand.lastResults || [];
+        saveJson("anhui_last_results", state.lastResults);
+        state.sessionId = state.demand.sessionId || state.sessionId || "";
+        if (state.sessionId) localStorage.setItem("anhui_session_id", state.sessionId);
+        saveDemandLocal(state.demand);
+        messagesEl.innerHTML = "";
+        show("chat");
+        const createdText = remoteDemand.reused
+          ? `检测到相同需求，已恢复需求单 ${state.demand.ticketNo}。下面继续为你推荐。`
+          : `需求单 ${state.demand.ticketNo} 已创建。下面我会先基于表单为你做首轮推荐。`;
+        addMessage("bot", createdText);
+        await addDemandMessageRemote("assistant", createdText, { session_id: state.sessionId || null, event: "demand_created" });
+        await sendToAgent(buildDemandPrompt(state.demand), { silentUser: true });
+      } catch (error) {
+        saveDemandLocal(state.demand);
+        toast(error.message || "需求单提交失败，已临时保存到当前浏览器。");
+      } finally {
+        button.disabled = false;
+        button.textContent = "提交并进入对话";
+      }
     });
 
-    document.getElementById("queryForm").addEventListener("submit", event => {
+    document.getElementById("queryForm").addEventListener("submit", async event => {
       event.preventDefault();
       const ticketNo = document.getElementById("queryTicketNo").value.trim();
-      const demand = readJson("anhui_demands", {})[ticketNo];
       const result = document.getElementById("queryResult");
+      result.innerHTML = `<div class="empty">正在查询需求单...</div>`;
+      let demand = null;
+      try {
+        const remoteDemand = await getDemandRemote(ticketNo);
+        const payload = remoteDemand.payload || {};
+        demand = {
+          ...payload,
+          ticketNo: remoteDemand.ticket_no || payload.ticketNo,
+          sessionId: remoteDemand.session_id || payload.sessionId || "",
+          status: remoteDemand.status || payload.status || "AI_RECOMMENDING",
+          messages: (remoteDemand.messages || []).map(item => ({
+            role: item.role,
+            content: item.content,
+            createdAt: item.created_at,
+            traceId: item.trace_id,
+            metadata: item.metadata || {}
+          }))
+        };
+        demand.lastResults = payload.lastResults || latestResultsFromMessages(demand.messages);
+      } catch {
+        demand = readJson("anhui_demands", {})[ticketNo];
+      }
       if (!demand) {
-        result.innerHTML = `<div class="empty">本机没有找到这个需求单号。演示版需求单保存在当前浏览器 localStorage 中。</div>`;
+        result.innerHTML = `<div class="empty">没有找到这个需求单号。请检查单号是否正确，或确认是否在本平台创建。</div>`;
         return;
       }
       result.innerHTML = `
         <div class="project">
           <h3>${escapeHtml(demand.ticketNo)} / ${escapeHtml(demand.track)}</h3>
           <p>${escapeHtml(demand.description)}</p>
+          <div class="project-meta">
+            <div><b>状态：</b>${escapeHtml(demand.status || "AI_RECOMMENDING")}</div>
+            <div><b>技术方向：</b>${escapeHtml(demand.technology || "-")}</div>
+            <div><b>消息数：</b>${(demand.messages || []).length}</div>
+          </div>
           <div class="form-footer">
             <button class="btn primary" type="button" id="continueDemandBtn">继续对话</button>
           </div>
@@ -1239,10 +1667,16 @@
       `;
       document.getElementById("continueDemandBtn").addEventListener("click", () => {
         state.demand = demand;
+        state.sessionId = demand.sessionId || state.sessionId || "";
+        if (state.sessionId) localStorage.setItem("anhui_session_id", state.sessionId);
+        state.lastResults = demand.lastResults || latestResultsFromMessages(demand.messages || []);
+        saveJson("anhui_last_results", state.lastResults);
         saveJson("anhui_current_demand", demand);
-        messagesEl.innerHTML = "";
+        saveDemandLocal(demand);
         show("chat");
-        addMessage("bot", `已恢复需求单 ${demand.ticketNo}，可以继续补充推荐条件。`);
+        renderStoredMessages(demand);
+        renderResults(state.lastResults || []);
+        setRunStatus("已恢复", `需求单 ${demand.ticketNo} 已加载，可继续多轮对话`, "done");
       });
     });
 
@@ -1261,20 +1695,43 @@
       }
     });
 
+    copyTicketBtn.addEventListener("click", async () => {
+      if (!state.demand?.ticketNo) {
+        toast("还没有可复制的需求单号。");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(state.demand.ticketNo);
+        toast("需求单号已复制。");
+      } catch {
+        toast(`需求单号：${state.demand.ticketNo}`);
+      }
+    });
+
+    sidebarToggleBtn?.addEventListener("click", () => {
+      applySidebarState(!workbenchEl.classList.contains("sidebar-collapsed"));
+    });
+
     async function loadHealth() {
       try {
         const response = await fetch("/healthz");
         const data = await response.json();
         healthText.textContent = `服务在线 / ${data.rag?.chat_model || "qwen-plus"} / 项目 ${data.projects || 0}`;
+        healthDot.classList.remove("offline");
       } catch {
         healthText.textContent = "服务未连接";
+        healthDot.classList.add("offline");
       }
     }
 
+    applySidebarState(localStorage.getItem("anhui_sidebar_collapsed") === "1");
     loadHealth();
     if (state.user && state.demand) {
       show("chat");
-      addMessage("bot", `已恢复需求单 ${state.demand.ticketNo}，可以继续对话。`);
+      renderStoredMessages(state.demand);
+      state.lastResults = state.demand.lastResults || latestResultsFromMessages(state.demand.messages || []) || state.lastResults || [];
+      renderResults(state.lastResults);
+      setRunStatus("已恢复", `需求单 ${state.demand.ticketNo} 已加载，可继续多轮对话`, "done");
     } else if (state.user) {
       show("intake");
     } else {

@@ -175,8 +175,29 @@ async def classify_intent(state) -> dict:
     intent, conf = r["intent"], r["confidence"]
     route = INTENT_TO_ROUTE.get(intent, "business")
     tag_intent(intent, conf)   # ch09:意图进当前 trace 的 metadata+tag,Cost Control 按意图分堆
-    return {"intent": intent, "intent_confidence": conf, "route": route,
-            "trace": {"intent": intent, "intent_confidence": conf, "route": route}}
+    return {
+        "intent": intent,
+        "sub_intent": r.get("sub_intent", ""),
+        "intent_confidence": conf,
+        "candidate_intents": r.get("candidate_intents", []),
+        "intent_slots": r.get("slots", {}),
+        "intent_tasks": r.get("tasks", []),
+        "is_multi_task": bool(r.get("is_multi_task", False)),
+        "route": route,
+        "trace": {
+            "intent": intent,
+            "sub_intent": r.get("sub_intent", ""),
+            "intent_confidence": conf,
+            "route": route,
+            "candidate_intents": r.get("candidate_intents", []),
+            "intent_slots": r.get("slots", {}),
+            "intent_tasks": r.get("tasks", []),
+            "is_multi_task": bool(r.get("is_multi_task", False)),
+            "intent_source": r.get("intent_source", ""),
+            "rule_intent": r.get("rule_intent", ""),
+            "rule_confidence": r.get("rule_confidence", 0.0),
+        },
+    }
 
 
 async def retrieve_knowledge(state) -> dict:

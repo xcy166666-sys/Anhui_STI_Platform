@@ -22,6 +22,32 @@ async def test_classify_intent_writes_confidence_and_route(monkeypatch):
     assert out["trace"]["intent_confidence"] == 0.83     # 不覆盖 confidence_check 的 confidence 键
 
 
+@pytest.mark.asyncio
+async def test_classify_intent_writes_pipeline_metadata(monkeypatch):
+    async def fake_classify(query, history=""):
+        return {
+            "intent": "退款退货",
+            "confidence": 0.91,
+            "sub_intent": "refund_request",
+            "candidate_intents": [{"intent": "退款退货", "score": 0.8}],
+            "slots": {"order_id": "1001"},
+            "tasks": [{"task_id": "task1", "tool": "fetch_order", "depends_on": []}],
+            "is_multi_task": True,
+            "intent_source": "rule",
+            "rule_intent": "退款退货",
+            "rule_confidence": 0.91,
+        }
+    monkeypatch.setattr(nodes.intent_mod, "classify", fake_classify)
+    out = await nodes.classify_intent({"messages": [HumanMessage("订单1001我要退款")],
+                                       "resolved_query": "订单1001我要退款"})
+    assert out["sub_intent"] == "refund_request"
+    assert out["candidate_intents"][0]["intent"] == "退款退货"
+    assert out["intent_slots"]["order_id"] == "1001"
+    assert out["intent_tasks"][0]["tool"] == "fetch_order"
+    assert out["is_multi_task"] is True
+    assert out["trace"]["intent_source"] == "rule"
+
+
 def test_get_chat_model_honors_model_override():
     from app.core.llm import get_chat_model
     m = get_chat_model(model="glm-4-flash")
