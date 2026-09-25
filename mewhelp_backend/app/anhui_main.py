@@ -120,6 +120,67 @@ def unique(values: list[str], limit: int = 12) -> list[str]:
     return out
 
 
+def contains_any(text_value: str, keywords: list[str]) -> bool:
+    return any(keyword and keyword in text_value for keyword in keywords)
+
+
+def looks_like_project_search(query: str) -> bool:
+    text_value = query.strip()
+    if not text_value:
+        return False
+    action_terms = [
+        "找",
+        "查",
+        "查找",
+        "检索",
+        "搜索",
+        "推荐",
+        "匹配",
+        "筛选",
+        "有没有",
+        "介绍",
+        "了解",
+    ]
+    domain_terms = [
+        "项目",
+        "科创",
+        "技术",
+        "成果",
+        "芯片",
+        "新能源",
+        "人工智能",
+        "低空",
+        "新材料",
+        "生物医药",
+        "高端装备",
+        "量子",
+        "测试板",
+    ]
+    has_project_code = bool(re.search(r"\b[A-Za-z]{1,8}\s*\d{2,}[A-Za-z0-9-]*\b", text_value))
+    has_action = contains_any(text_value, action_terms)
+    has_domain = contains_any(text_value, domain_terms)
+    return (has_action and has_domain) or (has_project_code and (has_action or has_domain))
+
+
+def looks_like_reference_followup(query: str) -> bool:
+    reference_terms = [
+        "第一个",
+        "第二个",
+        "第三个",
+        "第四个",
+        "第五个",
+        "刚才",
+        "上一个",
+        "这个",
+        "那个",
+        "它",
+        "1号",
+        "2号",
+        "3号",
+    ]
+    return contains_any(query, reference_terms)
+
+
 class ChatRequest(BaseModel):
     query: str = Field(min_length=2, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
@@ -1196,6 +1257,7 @@ class IntentAgent:
             "previous_intent": state["session"].get("turns", [])[-1]["intent"]["name"] if state["session"].get("turns") else "",
         }
         result = self.client.classify_intent(state["query"], context)
+        forced_project_search = looks_like_project_search(state["query"])
         state["intent"] = {
             "name": result.get("intent", "clarification"),
             "sub_intent": result.get("sub_intent", ""),
@@ -1213,6 +1275,16 @@ class IntentAgent:
         state["should_retrieve"] = bool(result.get("should_retrieve", False))
         last_ids = state["session"]["short_term_memory"].get("last_recommendation_ids", [])
         query = state["query"]
+        if forced_project_search and not (last_ids and looks_like_reference_followup(query)):
+            state["intent"] = {
+                **state["intent"],
+                "name": "project_recommendation",
+                "sub_intent": state["intent"].get("sub_intent") or "keyword_search",
+                "confidence": max(float(state["intent"].get("confidence", 0.0)), 0.9),
+                "reason": "命中项目检索规则，强制进入 RAG 检索",
+                "intent_source": "project_search_rule",
+            }
+            state["should_retrieve"] = True
         ordinal_reference = any(word in query for word in ["第一个", "第二个", "第三个", "第四个", "第五个", "第1个", "第2个", "第3个", "1号", "2号", "这个", "那个", "它", "刚才"])
         detail_followup = any(word in query for word in ["详细", "介绍", "具体", "展开", "说说", "讲讲", "是什么", "怎么样", "如何", "情况"])
         if last_ids and any(word in query for word in ["为什么", "为啥", "推荐理由", "依据", "凭什么"]):
