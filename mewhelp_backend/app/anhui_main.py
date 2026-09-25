@@ -140,6 +140,10 @@ def looks_like_project_search(query: str) -> bool:
         "有没有",
         "介绍",
         "了解",
+        "find",
+        "search",
+        "recommend",
+        "lookup",
     ]
     domain_terms = [
         "项目",
@@ -155,11 +159,14 @@ def looks_like_project_search(query: str) -> bool:
         "高端装备",
         "量子",
         "测试板",
+        "project",
+        "technology",
+        "chip",
     ]
     has_project_code = bool(re.search(r"\b[A-Za-z]{1,8}\s*\d{2,}[A-Za-z0-9-]*\b", text_value))
     has_action = contains_any(text_value, action_terms)
     has_domain = contains_any(text_value, domain_terms)
-    return (has_action and has_domain) or (has_project_code and (has_action or has_domain))
+    return has_project_code or (has_action and has_domain)
 
 
 def looks_like_reference_followup(query: str) -> bool:
