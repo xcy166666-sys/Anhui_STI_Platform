@@ -2081,6 +2081,8 @@ demand_store = DemandStore()
 
 app = FastAPI(title="安徽科创项目推荐 Demo")
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+if (FRONTEND_DIR / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="assets")
 
 
 @app.on_event("startup")
@@ -2169,3 +2171,10 @@ def recommend(request: ChatRequest) -> dict[str, Any]:
 @app.post("/api/v1/chat")
 def chat_v1(request: ChatRequest) -> dict[str, Any]:
     return chat(request)
+
+
+@app.get("/{path:path}")
+def spa_fallback(path: str) -> FileResponse:
+    if path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API route not found")
+    return FileResponse(FRONTEND_DIR / "index.html")

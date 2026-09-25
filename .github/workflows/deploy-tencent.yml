@@ -70,6 +70,7 @@ jobs:
             cd "$DEPLOY_PATH"
             test -f .env
             test -f server-data/anhui_data/cleaned/project_vectors_source.jsonl
+            docker rm -f web-frontend >/dev/null 2>&1 || true
             docker compose -f docker-compose.prod.yml up -d --build
             docker compose -f docker-compose.prod.yml ps
             rm -rf /tmp/anhui-sti-platform-upload
