@@ -880,7 +880,7 @@ function createNewChat() {
 </script>
 
 <template>
-  <div class="h-full flex bg-gradient-to-br from-slate-50 to-white">
+  <div class="project-chat-shell h-full flex bg-gradient-to-br from-slate-50 to-white">
     <!-- Chat Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Messages -->
@@ -908,7 +908,7 @@ function createNewChat() {
           <div class="w-20 h-20 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
             <Sparkles :size="40" class="text-white" />
           </div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">欢迎使用 RAG 知识库系统</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">开始寻找安徽科创项目</h2>
           <p class="text-gray-500 mb-8 max-w-md">
             描述你的技术方向、区域和项目阶段，助手会从安徽科创项目库中筛选并解释推荐理由。
           </p>
@@ -1195,7 +1195,7 @@ function createNewChat() {
               ref="chatInputRef"
               v-model="userInput"
               rows="1"
-              placeholder="输入你的问题..."
+              placeholder="例如：找 3 个新能源项目，并比较融资阶段"
               class="min-h-[44px] max-h-[148px] flex-1 px-4 py-2.5 bg-slate-50/80 border border-slate-200/80 rounded-xl focus:ring-2 focus:ring-emerald-200/60 focus:border-emerald-500 outline-none resize-none shadow-sm transition-all leading-6"
               @input="resizeChatInput"
               @keydown.enter.exact.prevent="sendMessage"
@@ -1540,6 +1540,22 @@ pre.hljs code {
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(240, 253, 250, 0.84));
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+}
+
+.project-chat-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.project-chat-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.72), transparent 32%),
+    radial-gradient(circle at 82% 12%, rgba(16, 185, 129, 0.09), transparent 24rem);
 }
 
 .intake-field {

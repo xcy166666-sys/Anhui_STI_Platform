@@ -257,8 +257,8 @@ function getResultColor(type: 'local' | 'web') {
   <div class="flex-1 flex flex-col h-full bg-gradient-to-br from-slate-100 via-emerald-50/30 to-teal-50/30">
     <PageHeader
       :icon="Search"
-      title="语义搜索"
-      subtitle="在知识库中搜索相关内容"
+      title="项目检索"
+      subtitle="从安徽科创项目库中查找、比较和核验项目"
     >
       <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm">
         <Database :size="16" class="text-slate-400" />
@@ -282,7 +282,7 @@ function getResultColor(type: 'local' | 'web') {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="输入你想搜索的内容..."
+              placeholder="输入项目名称、技术方向、行业或融资需求..."
               class="flex-1 px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 transition-all outline-none text-base"
               @keydown.enter="handleSearch"
             />

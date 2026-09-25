@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import swanLake from '@/assets/hefei-swan-lake.jpg'
 import {
   AlertCircle,
   ArrowRight,
@@ -146,7 +147,7 @@ async function handleRegister() {
 <template>
   <div
     class="auth-shell relative min-h-screen overflow-x-hidden overflow-y-auto bg-slate-50 px-4 py-6 text-slate-900 lg:py-8"
-    :style="{ '--px': parallaxX + 'px', '--py': parallaxY + 'px' }"
+    :style="{ '--swan-lake': `url(${swanLake})`, '--px': parallaxX + 'px', '--py': parallaxY + 'px' }"
     @mousemove="handleParallax"
   >
     <div class="mesh mesh-one"></div>
@@ -204,7 +205,7 @@ async function handleRegister() {
 
             <p class="eyebrow enter d2">创建账号</p>
             <h1 class="gradient-heading enter mt-5 max-w-md text-5xl font-semibold leading-tight">
-              创建你的企业智能工作空间
+              创建你的项目推荐工作空间
             </h1>
             <p class="enter d3 mt-6 max-w-md text-sm leading-7 text-slate-600">
               先完成账号信息，注册完成后即可登录并进入项目推荐工作区。
@@ -225,13 +226,13 @@ async function handleRegister() {
             <div class="grid grid-cols-2 gap-3 text-xs">
               <div class="metric-card">
                 <Shield :size="17" class="mb-2 text-emerald-600" />
-                <p>租户隔离</p>
-                <strong>独立空间</strong>
+                <p>项目数据</p>
+                <strong>统一检索</strong>
               </div>
               <div class="metric-card">
                 <CheckCircle :size="17" class="mb-2 text-emerald-600" />
-                <p>注册流程</p>
-                <strong>注册后登录</strong>
+                <p>使用方式</p>
+                <strong>注册后开始对话</strong>
               </div>
             </div>
           </div>
@@ -288,22 +289,22 @@ async function handleRegister() {
               <div class="grid gap-5 sm:grid-cols-2">
                 <label class="space-y-2 sm:col-span-2">
                   <span class="auth-label"><User :size="16" /> 用户名 <b>*</b></span>
-                  <input v-model="username" type="text" placeholder="请输入用户名" class="auth-input" />
+                  <input v-model="username" type="text" autocomplete="username" placeholder="请输入用户名" class="auth-input" />
                 </label>
 
                 <label class="space-y-2">
                   <span class="auth-label"><Lock :size="16" /> 密码 <b>*</b></span>
-                  <input v-model="password" type="password" placeholder="至少 6 位" class="auth-input" />
+                  <input v-model="password" type="password" autocomplete="new-password" placeholder="至少 6 位" class="auth-input" />
                 </label>
 
                 <label class="space-y-2">
                   <span class="auth-label"><Lock :size="16" /> 确认密码 <b>*</b></span>
-                  <input v-model="confirmPassword" type="password" placeholder="再次输入密码" class="auth-input" @keydown.enter="handleRegister" />
+                  <input v-model="confirmPassword" type="password" autocomplete="new-password" placeholder="再次输入密码" class="auth-input" @keydown.enter="handleRegister" />
                 </label>
 
                 <label class="space-y-2 sm:col-span-2">
                   <span class="auth-label"><Mail :size="16" /> 邮箱地址 <b>*</b></span>
-                  <input v-model="email" type="email" placeholder="请输入邮箱地址" class="auth-input" />
+                  <input v-model="email" type="email" autocomplete="email" placeholder="请输入邮箱地址" class="auth-input" />
                 </label>
 
                 <label class="space-y-2">
@@ -354,10 +355,15 @@ async function handleRegister() {
 
 <style scoped>
 .auth-shell {
-  background:
+  background-image:
+    linear-gradient(115deg, rgba(240, 253, 250, 0.96) 0%, rgba(240, 253, 250, 0.78) 42%, rgba(15, 23, 42, 0.38) 100%),
+    var(--swan-lake),
     radial-gradient(circle at 12% 16%, rgba(16, 185, 129, 0.10), transparent 36%),
     radial-gradient(circle at 86% 20%, rgba(13, 148, 136, 0.10), transparent 34%),
     linear-gradient(135deg, #f6fbf9 0%, #eef6f5 50%, #f6fbf9 100%);
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 .mesh {

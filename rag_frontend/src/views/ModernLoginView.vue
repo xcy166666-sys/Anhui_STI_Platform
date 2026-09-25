@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import swanLake from '@/assets/hefei-swan-lake.jpg'
 import { AlertCircle, ArrowRight, CheckCircle, Eye, EyeOff, FileBarChart, Lock, Mail, Search, Sparkles, User } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -62,7 +63,7 @@ async function handleLogin() {
 <template>
   <div
     class="auth-shell relative min-h-screen overflow-hidden bg-slate-50 px-4 py-8 text-slate-900"
-    :style="{ '--px': parallaxX + 'px', '--py': parallaxY + 'px' }"
+    :style="{ '--swan-lake': `url(${swanLake})`, '--px': parallaxX + 'px', '--py': parallaxY + 'px' }"
     @mousemove="handleParallax"
   >
     <div class="mesh mesh-one"></div>
@@ -130,22 +131,22 @@ async function handleLogin() {
               <div class="feature-chip">
                 <span class="feature-ic"><Search :size="16" /></span>
                 <div>
-                  <p class="feature-title">知识检索与问答</p>
-                  <p class="feature-sub">知识库 · 知识图谱 · 多智能体</p>
+                  <p class="feature-title">项目检索与问答</p>
+                  <p class="feature-sub">项目库 · 语义检索 · 连续追问</p>
                 </div>
               </div>
               <div class="feature-chip">
                 <span class="feature-ic"><FileBarChart :size="16" /></span>
                 <div>
-                  <p class="feature-title">财税智能</p>
-                  <p class="feature-sub">税务分析 · 财务健康 · 合同审核</p>
+                  <p class="feature-title">项目比较</p>
+                  <p class="feature-sub">技术方向 · 项目阶段 · 融资信息</p>
                 </div>
               </div>
               <div class="feature-chip">
                 <span class="feature-ic"><Sparkles :size="16" /></span>
                 <div>
-                  <p class="feature-title">政策服务</p>
-                  <p class="feature-sub">政策匹配 · 通知 · 企业服务</p>
+                  <p class="feature-title">多智能体协作</p>
+                  <p class="feature-sub">需求理解 · 项目召回 · 推荐解释</p>
                 </div>
               </div>
             </div>
@@ -187,6 +188,7 @@ async function handleLogin() {
                       <input
                         v-model="identifier"
                         type="text"
+                        autocomplete="username"
                         placeholder="请输入用户名或邮箱"
                         class="auth-input pl-11"
                         @keydown.enter="handleLogin"
@@ -201,6 +203,7 @@ async function handleLogin() {
                       <input
                         v-model="password"
                         :type="showPassword ? 'text' : 'password'"
+                        autocomplete="current-password"
                         placeholder="请输入密码"
                         class="auth-input pl-11 pr-12"
                         @keydown.enter="handleLogin"
@@ -246,10 +249,15 @@ async function handleLogin() {
 
 <style scoped>
 .auth-shell {
-  background:
+  background-image:
+    linear-gradient(115deg, rgba(240, 253, 250, 0.96) 0%, rgba(240, 253, 250, 0.78) 42%, rgba(15, 23, 42, 0.38) 100%),
+    var(--swan-lake),
     radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.10), transparent 36%),
     radial-gradient(circle at 82% 16%, rgba(13, 148, 136, 0.10), transparent 34%),
     linear-gradient(135deg, #f6fbf9 0%, #eef6f5 50%, #f6fbf9 100%);
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 .mesh {
