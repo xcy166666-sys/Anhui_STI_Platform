@@ -19,7 +19,7 @@ jobs:
           mkdir -p deploy_bundle/mewhelp_backend/scripts deploy_bundle/mewhelp_backend/tests/data
           cp Dockerfile.anhui docker-compose.prod.yml deploy_bundle/
           cp -a deploy deploy_bundle/
-          cp -a anhui_frontend deploy_bundle/
+          cp -a rag_frontend deploy_bundle/
           cp -a mewhelp_backend/app deploy_bundle/mewhelp_backend/
           cp mewhelp_backend/requirements-anhui.txt deploy_bundle/mewhelp_backend/
           cp mewhelp_backend/requirements-observability.txt deploy_bundle/mewhelp_backend/

@@ -180,6 +180,33 @@ const userRole = computed<MenuRole>(() => isAdmin.value ? 'admin' : 'user')
 const userEmail = computed(() => authStore.userEmail || localStorage.getItem('rag_user_email') || '')
 
 const menuGroups = computed<MenuGroup[]>(() => {
+  // 普通用户只看到科创项目推荐主流程；运营/管理员仍保留完整后台菜单。
+  if (!isAdmin.value) {
+    return [
+      {
+        id: 'recommendation',
+        title: '项目推荐',
+        icon: Target,
+        defaultExpanded: true,
+        items: [
+          { path: '/', icon: MessageSquare, label: '推荐助手', name: 'chat' },
+          { path: '/multi-agent', icon: Brain, label: '多智能体协作', name: 'multi-agent-chat' },
+          { path: '/search', icon: Search, label: '项目检索', name: 'search' },
+        ]
+      },
+      {
+        id: 'conversations',
+        title: '我的工作区',
+        icon: History,
+        defaultExpanded: true,
+        items: [
+          { path: '/chat-logs', icon: History, label: '历史会话', name: 'chat-logs' },
+          { path: '/profile', icon: User, label: '个人资料', name: 'profile' },
+        ]
+      },
+    ]
+  }
+
   const groups: MenuGroup[] = [
     {
       id: 'collaboration',
@@ -361,7 +388,7 @@ function goToProfile() {
           <div class="premium-logo w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
             <Database :size="16" class="text-white" />
           </div>
-          <span v-if="!isSidebarCollapsed" class="font-bold text-slate-900 tracking-tight text-sm leading-tight">企业财税智能平台</span>
+          <span v-if="!isSidebarCollapsed" class="font-bold text-slate-900 tracking-tight text-sm leading-tight">安徽科创项目推荐助手</span>
         </div>
         <button
           @click="toggleSidebar"

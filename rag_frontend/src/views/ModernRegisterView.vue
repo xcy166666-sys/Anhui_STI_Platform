@@ -134,7 +134,7 @@ async function handleRegister() {
       )
     }
 
-    router.push('/login')
+    router.push({ name: 'login', query: { registered: '1' } })
   } catch (err: any) {
     error.value = getFriendlyRegisterError(err)
   } finally {
@@ -197,8 +197,8 @@ async function handleRegister() {
                 <Sparkles :size="24" />
               </div>
               <div>
-                <p class="text-sm font-semibold tracking-wide text-slate-900">企业财税智能平台</p>
-                <p class="text-xs text-emerald-700/80">一站式企业智能服务</p>
+                <p class="text-sm font-semibold tracking-wide text-slate-900">安徽科创项目推荐助手</p>
+                <p class="text-xs text-emerald-700/80">注册后即可开始项目推荐</p>
               </div>
             </div>
 
@@ -207,7 +207,7 @@ async function handleRegister() {
               创建你的企业智能工作空间
             </h1>
             <p class="enter d3 mt-6 max-w-md text-sm leading-7 text-slate-600">
-              先完成登录所需的核心信息。手机号和姓名可以稍后在个人中心补充，注册完成后将回到登录页。
+              先完成账号信息，注册完成后即可登录并进入项目推荐工作区。
             </p>
           </div>
 

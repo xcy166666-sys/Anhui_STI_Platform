@@ -29,7 +29,10 @@ import {
   RotateCw,
   History,
   Check,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  MapPin,
+  Target
 } from 'lucide-vue-next'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -133,6 +136,41 @@ const messages = computed(() => sessionStore.currentMessages)
 const sessions = computed(() => sessionStore.sessions)
 const knowledgeBases = computed(() => knowledgeStore.knowledgeBases)
 const selectedKB = computed(() => knowledgeStore.selectedKnowledgeBase)
+
+// Structured intake only prepares a query; submission still uses the existing Agent/RAG path.
+const intakeIndustry = ref('')
+const intakeRegion = ref('安徽省')
+const intakeStage = ref('')
+const intakeNeed = ref('')
+const showIntake = ref(true)
+const showMobileSessions = ref(false)
+
+const intakeReady = computed(() => Boolean(
+  intakeIndustry.value.trim() || intakeStage.value.trim() || intakeNeed.value.trim()
+))
+
+function submitIntake() {
+  const parts = [
+    intakeRegion.value.trim() && `区域：${intakeRegion.value.trim()}`,
+    intakeIndustry.value.trim() && `技术方向：${intakeIndustry.value.trim()}`,
+    intakeStage.value.trim() && `项目阶段：${intakeStage.value.trim()}`,
+    intakeNeed.value.trim() && `补充需求：${intakeNeed.value.trim()}`,
+  ].filter(Boolean)
+  if (!parts.length) return
+  userInput.value = `请推荐符合以下条件的安徽科创项目：${parts.join('；')}。请说明推荐理由，并列出项目名称、所属行业和关键信息。`
+  showIntake.value = false
+  nextTick(() => sendMessage())
+}
+
+function useQuickQuery(query: string) {
+  userInput.value = query
+  showIntake.value = false
+  nextTick(() => sendMessage())
+}
+
+function skipIntake() {
+  showIntake.value = false
+}
 
 onMounted(async () => {
   // 👇 关键修复：组件挂载时清理可能残留的旧消息
@@ -849,32 +887,87 @@ function createNewChat() {
       <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-4 py-5 sm:px-5 sm:py-6 space-y-4">
         <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
           <div class="absolute top-4 right-4">
-            <button
-              @click="createNewChat"
-              class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-emerald-300 flex items-center gap-2 text-sm text-gray-700 shadow-sm transition-all"
-            >
-              <Plus :size="16" />
-              新建对话
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                class="lg:hidden p-2 rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm"
+                title="打开会话列表"
+                aria-label="打开会话列表"
+                @click="showMobileSessions = true"
+              >
+                <History :size="17" />
+              </button>
+              <button
+                @click="createNewChat"
+                class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-emerald-300 flex items-center gap-2 text-sm text-gray-700 shadow-sm transition-all"
+              >
+                <Plus :size="16" />
+                新建对话
+              </button>
+            </div>
           </div>
           <div class="w-20 h-20 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
             <Sparkles :size="40" class="text-white" />
           </div>
           <h2 class="text-2xl font-bold text-gray-900 mb-2">欢迎使用 RAG 知识库系统</h2>
           <p class="text-gray-500 mb-8 max-w-md">
-            请选择一个知识库，然后开始智能对话。我将根据知识库中的内容为你提供准确的答案。
+            描述你的技术方向、区域和项目阶段，助手会从安徽科创项目库中筛选并解释推荐理由。
           </p>
 
-          <!-- Quick Actions -->
-          <div class="grid grid-cols-2 gap-4 max-w-lg">
-            <div class="p-4 bg-white rounded-xl border border-gray-200 text-left">
-              <h3 class="font-semibold text-gray-900 mb-1">选择知识库</h3>
-              <p class="text-sm text-gray-500">从下拉菜单选择要查询的知识库</p>
+          <div v-if="showIntake" class="project-intake w-full max-w-2xl mb-7 text-left">
+            <div class="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <p class="text-xs font-semibold tracking-[0.16em] text-emerald-700 uppercase">需求采集</p>
+                <h3 class="mt-1 text-lg font-semibold text-slate-900">先描述你的项目需求</h3>
+                <p class="mt-1 text-sm text-slate-500">填写越具体，推荐结果越容易比较和追问。</p>
+              </div>
+              <Target :size="22" class="text-emerald-600 shrink-0" />
             </div>
-            <div class="p-4 bg-white rounded-xl border border-gray-200 text-left">
-              <h3 class="font-semibold text-gray-900 mb-1">开始对话</h3>
-              <p class="text-sm text-gray-500">输入问题，获取基于知识库的智能回答</p>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <label class="intake-field sm:col-span-2">
+                <span>技术方向</span>
+                <input v-model="intakeIndustry" placeholder="如：人工智能、低空经济、新能源" />
+              </label>
+              <label class="intake-field">
+                <span>所在区域</span>
+                <div class="relative">
+                  <MapPin :size="15" class="intake-icon" />
+                  <input v-model="intakeRegion" class="pl-8" placeholder="安徽省" />
+                </div>
+              </label>
+              <label class="intake-field">
+                <span>项目阶段</span>
+                <input v-model="intakeStage" placeholder="如：产业化、融资中" />
+              </label>
+              <label class="intake-field sm:col-span-2">
+                <span>重点关注</span>
+                <input v-model="intakeNeed" placeholder="如：融资金额、核心技术、应用场景" @keydown.enter.prevent="submitIntake" />
+              </label>
             </div>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap gap-2">
+                <button class="query-chip" @click="useQuickQuery('请推荐三个新能源方向的安徽科创项目，并说明推荐理由。')">新能源项目</button>
+                <button class="query-chip" @click="useQuickQuery('请推荐三个低空经济方向的安徽科创项目，并比较它们的技术特点。')">低空经济</button>
+                <button class="query-chip" @click="useQuickQuery('请推荐适合产业投资人关注的人工智能项目，并说明融资信息。')">人工智能</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  class="text-xs text-slate-500 hover:text-emerald-700 transition-colors"
+                  @click="skipIntake"
+                >
+                  先直接对话
+                </button>
+                <button class="intake-submit" :disabled="!intakeReady" @click="submitIntake">
+                  开始推荐
+                  <ChevronRight :size="16" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+            <span class="rounded-full bg-white/80 px-3 py-1.5 border border-slate-200">支持连续追问</span>
+            <span class="rounded-full bg-white/80 px-3 py-1.5 border border-slate-200">可比较多个项目</span>
+            <span class="rounded-full bg-white/80 px-3 py-1.5 border border-slate-200">结果来自项目库</span>
           </div>
         </div>
 
@@ -1038,6 +1131,13 @@ function createNewChat() {
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <button
+                @click="showMobileSessions = true"
+                class="lg:hidden px-2.5 py-1 text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg flex items-center gap-1.5 transition-all"
+              >
+                <History :size="14" />
+                会话
+              </button>
+              <button
                 @click="createNewChat"
                 class="px-2.5 py-1 text-xs text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg flex items-center gap-1.5 transition-all"
               >
@@ -1136,7 +1236,17 @@ function createNewChat() {
     </div>
 
     <!-- Sessions Sidebar -->
-    <div class="w-72 bg-white/80 backdrop-blur-sm border-l border-gray-200/80 flex flex-col">
+    <div
+      v-if="showMobileSessions"
+      class="fixed inset-0 z-20 bg-slate-900/20 lg:hidden"
+      @click="showMobileSessions = false"
+    ></div>
+    <div
+      :class="[
+        'w-72 bg-white/95 backdrop-blur-sm border-l border-gray-200/80 flex-col shadow-2xl lg:static lg:z-auto lg:flex lg:shadow-none',
+        showMobileSessions ? 'fixed inset-y-0 right-0 z-30 flex' : 'hidden'
+      ]"
+    >
       <div class="p-4 border-b border-gray-200/80 bg-gradient-to-r from-white to-emerald-50/30">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -1145,13 +1255,23 @@ function createNewChat() {
             </div>
             <h2 class="font-semibold text-gray-900 text-sm">会话列表</h2>
           </div>
-          <button
-            @click="createNewSession"
-            class="p-1.5 hover:bg-white rounded-lg transition-all hover:shadow-sm hover:text-emerald-600 text-gray-500"
-            title="新建会话"
-          >
-            <Plus :size="18" />
-          </button>
+          <div class="flex items-center gap-1">
+            <button
+              @click="createNewSession"
+              class="p-1.5 hover:bg-white rounded-lg transition-all hover:shadow-sm hover:text-emerald-600 text-gray-500"
+              title="新建会话"
+            >
+              <Plus :size="18" />
+            </button>
+            <button
+              @click="showMobileSessions = false"
+              class="p-1.5 hover:bg-white rounded-lg transition-all text-gray-500 lg:hidden"
+              title="关闭会话列表"
+              aria-label="关闭会话列表"
+            >
+              <X :size="17" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1412,6 +1532,91 @@ pre.hljs code {
   border-radius: 9999px;
   background: #059669;
   animation: streamingBlink 0.9s ease-in-out infinite;
+}
+
+.project-intake {
+  padding: 1.35rem;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(240, 253, 250, 0.84));
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+}
+
+.intake-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.intake-field > span {
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.intake-field input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dbe5e3;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.65rem 0.75rem;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.intake-field input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.intake-icon {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  color: #94a3b8;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.query-chip {
+  border: 1px solid #dbe5e3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.4rem 0.7rem;
+  color: #047857;
+  font-size: 0.75rem;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.query-chip:hover {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+}
+
+.intake-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 10px;
+  background: #047857;
+  padding: 0.65rem 0.9rem;
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.intake-submit:hover:not(:disabled) {
+  background: #065f46;
+  transform: translateY(-1px);
+}
+
+.intake-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 @keyframes streamingBlink {

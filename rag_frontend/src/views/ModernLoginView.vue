@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { AlertCircle, ArrowRight, Eye, EyeOff, FileBarChart, Lock, Mail, Search, Sparkles, User } from 'lucide-vue-next'
+import { AlertCircle, ArrowRight, CheckCircle, Eye, EyeOff, FileBarChart, Lock, Mail, Search, Sparkles, User } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const identifier = ref('')
@@ -12,6 +13,7 @@ const password = ref('')
 const error = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
+const registeredNotice = computed(() => route.query.registered === '1')
 
 const parallaxX = ref(0)
 const parallaxY = ref(0)
@@ -45,7 +47,10 @@ async function handleLogin() {
     isLoading.value = true
     error.value = ''
     await authStore.login(loginIdentifier, password.value)
-    router.push('/')
+    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+      ? route.query.redirect
+      : '/'
+    router.push(redirect)
   } catch (err: any) {
     error.value = getFriendlyLoginError(err)
   } finally {
@@ -108,8 +113,8 @@ async function handleLogin() {
                 <Sparkles :size="24" />
               </div>
               <div>
-                <p class="text-sm font-semibold tracking-wide text-slate-900">企业财税智能平台</p>
-                <p class="text-xs text-emerald-700/80">一站式企业智能服务</p>
+                <p class="text-sm font-semibold tracking-wide text-slate-900">安徽科创项目推荐助手</p>
+                <p class="text-xs text-emerald-700/80">面向项目筛选、比较与追问</p>
               </div>
             </div>
 
@@ -118,7 +123,7 @@ async function handleLogin() {
               欢迎回来
             </h1>
             <p class="enter d3 mt-5 max-w-sm text-sm leading-7 text-slate-600">
-              登录后继续使用智能问答、财税分析、合同审核与政策服务工作空间。
+              登录后进入项目推荐工作区，搜索安徽科创项目并进行连续追问。
             </p>
 
             <div class="enter d4 mt-9 space-y-3">
@@ -166,6 +171,11 @@ async function handleLogin() {
             <div v-if="error" class="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <AlertCircle :size="18" class="mt-0.5 shrink-0" />
               <p>{{ error }}</p>
+            </div>
+
+            <div v-if="registeredNotice" class="mb-5 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <CheckCircle :size="18" class="mt-0.5 shrink-0" />
+              <p>注册成功，请使用刚才填写的账号登录。</p>
             </div>
 
             <div class="auth-card enter d3">

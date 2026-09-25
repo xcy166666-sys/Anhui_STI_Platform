@@ -307,7 +307,7 @@ router.beforeEach((to, from, next) => {
     const isAdmin = authStore.isAdmin || localStorage.getItem('rag_user_role') === 'admin'
 
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-      next('/login')
+      next({ name: 'login', query: { redirect: to.fullPath } })
     } else if (to.name === 'login' && authStore.isLoggedIn) {
       next('/')
     } else if (to.meta.requiresAdmin && !isAdmin) {
