@@ -18,8 +18,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy import create_engine, text
 
 from app.anhui_observability import AnhuiTraceRecorder
@@ -94,6 +92,21 @@ def token_set(text: str) -> set[str]:
         for token in re.findall(r"[A-Za-z0-9\u4e00-\u9fff]+", text or "")
         if len(token) > 1
     }
+
+
+def char_ngrams(text: str, *, min_n: int = 2, max_n: int = 4, limit: int = 500) -> set[str]:
+    normalized = re.sub(r"\s+", "", text.lower())
+    if not normalized:
+        return set()
+    grams: set[str] = set()
+    for n in range(min_n, max_n + 1):
+        if len(normalized) < n:
+            continue
+        for index in range(len(normalized) - n + 1):
+            grams.add(normalized[index : index + n])
+            if len(grams) >= limit:
+                return grams
+    return grams
 
 
 def unique(values: list[str], limit: int = 12) -> list[str]:
@@ -436,8 +449,6 @@ class ProjectIndex:
             for index, value in self.df["project_id"].items()
             if clean(value)
         }
-        self.vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(2, 4), min_df=1)
-        self.matrix = self.vectorizer.fit_transform(self.df["search_text"].tolist())
 
     @staticmethod
     def _search_text(row: pd.Series) -> str:
@@ -451,10 +462,17 @@ class ProjectIndex:
         return "\n".join(part for part in parts if part)
 
     def retrieve_local(self, query: str, top_k: int) -> list[dict[str, Any]]:
-        query_vector = self.vectorizer.transform([query])
-        scores = cosine_similarity(query_vector, self.matrix).ravel()
+        query_tokens = token_set(query)
+        query_grams = char_ngrams(query)
         candidates: list[dict[str, Any]] = []
-        for idx, score in sorted(enumerate(scores), key=lambda item: item[1], reverse=True)[: max(top_k * 5, 20)]:
+        for idx, row in self.df.iterrows():
+            text_value = clean(row.get("search_text"))
+            text_tokens = token_set(text_value)
+            token_score = len(query_tokens & text_tokens) / max(len(query_tokens), 1)
+            text_grams = char_ngrams(text_value)
+            gram_score = len(query_grams & text_grams) / max(len(query_grams), 1)
+            exact_bonus = 0.1 if query and query in text_value else 0.0
+            score = min(1.0, 0.65 * token_score + 0.35 * gram_score + exact_bonus)
             candidates.append(
                 {
                     "row_index": idx,
@@ -462,7 +480,7 @@ class ProjectIndex:
                     "row": self.df.iloc[idx],
                 }
             )
-        return candidates
+        return sorted(candidates, key=lambda item: item["rag_score"], reverse=True)[: max(top_k * 5, 20)]
 
     def to_project(self, row: pd.Series) -> dict[str, Any]:
         metadata = parse_metadata(row.get("metadata"))
@@ -791,26 +809,25 @@ class BailianClient:
 
     @classmethod
     def _semantic_candidates(cls, query: str, *, top_k: int = 3) -> list[dict[str, Any]]:
-        corpus: list[str] = []
-        labels: list[str] = []
         descriptions: dict[str, str] = {}
+        query_grams = char_ngrams(query, limit=300)
+        query_tokens = token_set(query)
         for item in cls.INTENT_REGISTRY:
             intent = item["intent"]
             descriptions[intent] = item["description"]
-            for example in item["examples"]:
-                corpus.append(f"{item['description']} {example}")
-                labels.append(intent)
         if not clean(query):
             return []
-        try:
-            vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
-            matrix = vectorizer.fit_transform(corpus + [query])
-            scores = cosine_similarity(matrix[-1], matrix[:-1]).flatten()
-        except Exception:
-            return []
         best: dict[str, float] = {}
-        for intent, score in zip(labels, scores):
-            best[intent] = max(best.get(intent, 0.0), float(score))
+        for item in cls.INTENT_REGISTRY:
+            intent = item["intent"]
+            for example in item["examples"]:
+                candidate_text = f"{item['description']} {example}"
+                candidate_grams = char_ngrams(candidate_text, limit=300)
+                candidate_tokens = token_set(candidate_text)
+                gram_score = len(query_grams & candidate_grams) / max(len(query_grams), 1)
+                token_score = len(query_tokens & candidate_tokens) / max(len(query_tokens), 1)
+                score = 0.7 * gram_score + 0.3 * token_score
+                best[intent] = max(best.get(intent, 0.0), float(score))
         ranked = sorted(best.items(), key=lambda item: item[1], reverse=True)[:top_k]
         return [
             {

@@ -60,7 +60,8 @@ services:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8010/healthz"]
       interval: 30s
       timeout: 5s
-      retries: 5
+      start_period: 150s
+      retries: 8
 
   nginx:
     image: nginx:1.27-alpine

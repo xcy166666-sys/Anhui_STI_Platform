@@ -27,6 +27,8 @@ jobs:
           cp mewhelp_backend/requirements-observability.txt deploy_bundle/mewhelp_backend/
           cp mewhelp_backend/requirements-ragas.txt deploy_bundle/mewhelp_backend/
           cp mewhelp_backend/scripts/eval_anhui_ragas.py deploy_bundle/mewhelp_backend/scripts/
+          cp mewhelp_backend/scripts/import_anhui_projects_to_postgres.py deploy_bundle/mewhelp_backend/scripts/
+          cp mewhelp_backend/scripts/import_anhui_projects_to_pgvector.py deploy_bundle/mewhelp_backend/scripts/
           cp mewhelp_backend/tests/data/anhui_ragas_eval.jsonl deploy_bundle/mewhelp_backend/tests/data/
 
       - name: Upload project to Tencent CVM
