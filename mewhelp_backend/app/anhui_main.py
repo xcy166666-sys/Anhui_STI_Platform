@@ -7,14 +7,15 @@ import re
 import hashlib
 import hmac
 import secrets
+import base64
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -51,6 +52,8 @@ MODEL_BASE_URL = os.getenv(
 CHAT_MODEL = os.getenv("CHAT_MODEL", "qwen-plus")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-v4")
 EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
+AUTH_SECRET = os.getenv("AUTH_SECRET", "")
+AUTH_TOKEN_TTL_SECONDS = int(os.getenv("AUTH_TOKEN_TTL_SECONDS", "604800"))
 
 
 def now_iso() -> str:
@@ -208,6 +211,14 @@ class UserLoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class AuthenticatedUser(BaseModel):
+    id: str
+    name: str
+    org: str
+    mobile: str
+    role: str
+
+
 class DemandCreateRequest(BaseModel):
     ticket_no: str = Field(min_length=6, max_length=40)
     user_id: str = Field(min_length=1, max_length=128)
@@ -243,6 +254,55 @@ def verify_password(password: str, stored: str) -> bool:
 def password_hash_with_iterations(password: str, salt: str, iterations: int) -> str:
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("ascii"), iterations)
     return f"pbkdf2_sha256${iterations}${salt}${digest.hex()}"
+
+
+def _auth_secret() -> bytes:
+    # A configured secret is required in production; the fallback keeps local demo startup usable.
+    return (AUTH_SECRET or "anhui-sti-local-development-secret").encode("utf-8")
+
+
+def _encode_token_payload(payload: dict[str, Any]) -> str:
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _decode_token_payload(value: str) -> dict[str, Any]:
+    padding = "=" * (-len(value) % 4)
+    return json.loads(base64.urlsafe_b64decode((value + padding).encode("ascii")))
+
+
+def create_access_token(user: dict[str, Any]) -> str:
+    payload = {
+        "sub": str(user["id"]),
+        "mobile": user["mobile"],
+        "role": user["role"],
+        "iat": int(datetime.now(timezone.utc).timestamp()),
+        "exp": int((datetime.now(timezone.utc) + timedelta(seconds=AUTH_TOKEN_TTL_SECONDS)).timestamp()),
+    }
+    encoded = _encode_token_payload(payload)
+    signature = hmac.new(_auth_secret(), encoded.encode("ascii"), hashlib.sha256).digest()
+    return f"{encoded}.{base64.urlsafe_b64encode(signature).decode('ascii').rstrip('=')}"
+
+
+def read_access_token(authorization: str | None) -> dict[str, Any]:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="请先登录")
+    token = authorization.split(" ", 1)[1].strip()
+    try:
+        encoded, encoded_signature = token.split(".", 1)
+        expected = hmac.new(_auth_secret(), encoded.encode("ascii"), hashlib.sha256).digest()
+        padding = "=" * (-len(encoded_signature) % 4)
+        actual = base64.urlsafe_b64decode((encoded_signature + padding).encode("ascii"))
+        if not hmac.compare_digest(expected, actual):
+            raise ValueError("invalid signature")
+        payload = _decode_token_payload(encoded)
+        if int(payload.get("exp", 0)) <= int(datetime.now(timezone.utc).timestamp()):
+            raise HTTPException(status_code=401, detail="登录已过期，请重新登录")
+        return payload
+    except HTTPException:
+        raise
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError, UnicodeError):
+        raise HTTPException(status_code=401, detail="登录凭证无效，请重新登录")
 
 
 class UserStore:
@@ -314,6 +374,19 @@ class UserStore:
                 text("UPDATE anhui_users SET last_login_at = NOW() WHERE id = :id"),
                 {"id": row["id"]},
             )
+        return self.public_user(dict(row))
+
+    def get_by_id(self, user_id: str) -> dict[str, Any]:
+        with self.engine.begin() as connection:
+            row = connection.execute(
+                text("""
+                    SELECT id, name, organization, mobile, role
+                    FROM anhui_users WHERE id = :id
+                """),
+                {"id": user_id},
+            ).mappings().first()
+        if not row:
+            raise HTTPException(status_code=401, detail="用户不存在，请重新登录")
         return self.public_user(dict(row))
 
 
@@ -2091,6 +2164,13 @@ def initialize_application() -> None:
     demand_store.initialize()
 
 
+def require_current_user(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    claims = read_access_token(authorization)
+    return user_store.get_by_id(str(claims["sub"]))
+
+
 @app.get("/")
 def home() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "index.html")
@@ -2132,45 +2212,77 @@ def healthz() -> dict[str, Any]:
 
 
 @app.post("/api/chat")
-def chat(request: ChatRequest) -> dict[str, Any]:
+def chat(request: ChatRequest, current_user: dict[str, Any] = Depends(require_current_user)) -> dict[str, Any]:
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="请输入需求")
+    request.user_id = current_user["id"]
     return harness.run(request)
 
 
 @app.post("/api/auth/register", status_code=201)
 def register(request: UserRegisterRequest) -> dict[str, Any]:
-    return {"user": user_store.register(request)}
+    user = user_store.register(request)
+    return {"user": user, "access_token": create_access_token(user), "token_type": "bearer"}
 
 
 @app.post("/api/auth/login")
 def login(request: UserLoginRequest) -> dict[str, Any]:
-    return {"user": user_store.login(request)}
+    user = user_store.login(request)
+    return {"user": user, "access_token": create_access_token(user), "token_type": "bearer"}
+
+
+@app.get("/api/auth/me")
+def auth_me(current_user: dict[str, Any] = Depends(require_current_user)) -> dict[str, Any]:
+    return {"user": current_user}
 
 
 @app.post("/api/demands", status_code=201)
-def create_demand(request: DemandCreateRequest) -> dict[str, Any]:
+def create_demand(
+    request: DemandCreateRequest,
+    current_user: dict[str, Any] = Depends(require_current_user),
+) -> dict[str, Any]:
+    request.user_id = current_user["id"]
     return {"demand": demand_store.create(request)}
 
 
 @app.get("/api/demands/{ticket_no}")
-def get_demand(ticket_no: str) -> dict[str, Any]:
-    return {"demand": demand_store.get(ticket_no)}
+def get_demand(
+    ticket_no: str,
+    current_user: dict[str, Any] = Depends(require_current_user),
+) -> dict[str, Any]:
+    demand = demand_store.get(ticket_no)
+    if demand.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="无权访问该需求")
+    return {"demand": demand}
 
 
 @app.post("/api/demands/{ticket_no}/messages", status_code=201)
-def add_demand_message(ticket_no: str, request: DemandMessageRequest) -> dict[str, Any]:
+def add_demand_message(
+    ticket_no: str,
+    request: DemandMessageRequest,
+    current_user: dict[str, Any] = Depends(require_current_user),
+) -> dict[str, Any]:
+    demand = demand_store.get(ticket_no)
+    if demand.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="无权访问该需求")
     return {"message": demand_store.add_message(ticket_no, request)}
 
 
 @app.post("/api/recommend")
-def recommend(request: ChatRequest) -> dict[str, Any]:
+def recommend(
+    request: ChatRequest,
+    current_user: dict[str, Any] = Depends(require_current_user),
+) -> dict[str, Any]:
+    request.user_id = current_user["id"]
     return harness.run(request)
 
 
 @app.post("/api/v1/chat")
-def chat_v1(request: ChatRequest) -> dict[str, Any]:
-    return chat(request)
+def chat_v1(
+    request: ChatRequest,
+    current_user: dict[str, Any] = Depends(require_current_user),
+) -> dict[str, Any]:
+    return chat(request, current_user)
 
 
 @app.get("/{path:path}")

@@ -42,6 +42,7 @@ type ProjectResult = {
 
 const savedUser = localStorage.getItem('anhui_user')
 const user = ref<User | null>(savedUser ? JSON.parse(savedUser) : null)
+const authToken = ref(localStorage.getItem('anhui_access_token') || '')
 const activeAuth = ref<'login' | 'register'>('login')
 const sidebarCollapsed = ref(false)
 const loading = ref(false)
@@ -80,20 +81,24 @@ const messages = ref<ChatMessage[]>([
 const lastResults = ref<ProjectResult[]>([])
 const lastTrace = ref<Record<string, unknown> | null>(null)
 
-const isAuthed = computed(() => Boolean(user.value))
+const isAuthed = computed(() => Boolean(user.value && authToken.value))
 
 const pageStyle = computed(() => ({
   backgroundImage: `linear-gradient(180deg, rgba(245, 247, 250, 0.80), rgba(238, 243, 247, 0.92)), url(${swanLake})`,
 }))
 
-function persistUser(nextUser: User) {
+function persistUser(nextUser: User, accessToken: string) {
   user.value = nextUser
+  authToken.value = accessToken
   localStorage.setItem('anhui_user', JSON.stringify(nextUser))
+  localStorage.setItem('anhui_access_token', accessToken)
 }
 
 function logout() {
   user.value = null
+  authToken.value = ''
   localStorage.removeItem('anhui_user')
+  localStorage.removeItem('anhui_access_token')
   localStorage.removeItem('anhui_session_id')
 }
 
@@ -108,7 +113,7 @@ async function submitLogin() {
     })
     const data = await response.json()
     if (!response.ok) throw new Error(data.detail || '登录失败')
-    persistUser(data.user)
+    persistUser(data.user, data.access_token)
   } catch (err) {
     error.value = err instanceof Error ? err.message : '登录失败'
   } finally {
@@ -127,7 +132,7 @@ async function submitRegister() {
     })
     const data = await response.json()
     if (!response.ok) throw new Error(data.detail || '注册失败')
-    persistUser(data.user)
+    persistUser(data.user, data.access_token)
   } catch (err) {
     error.value = err instanceof Error ? err.message : '注册失败'
   } finally {
@@ -159,7 +164,10 @@ async function sendMessage(text?: string) {
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken.value}`,
+      },
       body: JSON.stringify({
         query: content,
         top_k: 5,
